@@ -16,7 +16,7 @@ addpath(genpath('../../SA_GEK_Hump/'));
 % Machine to run on (iridis/local)
 options.platform = 'local';
 % Number of sample batches to read from samples folder
-options.nfiles = 1;
+options.nfiles = 2;
 % Specify theta file. If left blank theta is found using Genetic Algorithm
 options.theta = 'optimum_theta_1';
 % Specify to find new sample "batch" or "verify" existing GEK prediction
@@ -24,7 +24,7 @@ options.objective = 'batch';
 % Number of prediction points to be generated
 options.npred = 2000;
 % Number of next sample batch points
-options.nbatch = 100;
+options.nbatch = 10;
 % Write next sample batch to file
 options.writebatch = false;
 

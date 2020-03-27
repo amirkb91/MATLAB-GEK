@@ -7,15 +7,17 @@ warning('off','all')
 
 %% Read from results folder and do interpolation
 % header is X/Y/velx/vely. Velocities are nondimensional wrt freestream
+% rans = dlmread('/home/akb1r19/Documents/Results_CFD/NASA Hump/nominal_steady/SU2/Velocity_Field.dat','',10,0);
+% les  = dlmread('/home/akb1r19/Documents/Results_CFD/NASA Hump/nominal_steady/LES/Velocity_Field.dat','',10,0);
 
-rans = dlmread('/home/akb1r19/Documents/Results_CFD/NASA Hump/nominal_steady/SU2/Velocity_Field.dat','',10,0);
-les  = dlmread('/home/akb1r19/Documents/Results_CFD/NASA Hump/nominal_steady/LES/Velocity_Field.dat','',10,0);
+les = load('les.mat'); les = les.les;
+rans = load('rans.mat'); rans = rans.rans;
 
 % Do interpolation since meshes are different and we can't compare node to node
-rans_velx = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3),'natural','none');
-rans_vely = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4),'natural','none');
-les_velx = scatteredInterpolant(les(:,1),les(:,2),les(:,3),'natural','none');
-les_vely = scatteredInterpolant(les(:,1),les(:,2),les(:,4),'natural','none');
+rans_velx = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3));
+rans_vely = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4));
+les_velx = scatteredInterpolant(les(:,1),les(:,2),les(:,3));
+les_vely = scatteredInterpolant(les(:,1),les(:,2),les(:,4));
 
 %% Create meshgrid for plotting contours
 % Number of points to plot contour
@@ -92,7 +94,8 @@ title('Difference in Velocity Angle - RANS & LES')
 colorbar
 colormap('jet')
 %% Plot hump on all figures and set axis labels
-load('hump_surface.mat');
+hump_surface = load('hump_surface.mat');
+hump_surface = hump_surface.hump_surface;
 xhump = linspace(0,1,1000)';
 yhump = hump_surface(xhump);
 
