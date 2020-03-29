@@ -1,8 +1,6 @@
 function [pred] = makeprediction(sample, pred, GEK)
 % Make GEK predictions on points to find output and MSE
 
-fprintf('\n----- Making Predictions -----\n');
-
 % Initialise arrays to store
 predoutput = zeros(pred.npoint, 1);
 predmse = zeros(pred.npoint, 1);
@@ -40,7 +38,6 @@ pred.mse = predmse;
 
 % Sort prediction mse from max to min
 [pred.mse_sortval, pred.mse_sortindex] = sort(pred.mse,'descend');
-fprintf('\n----- Predictions Complete -----\n');
 
 end
 

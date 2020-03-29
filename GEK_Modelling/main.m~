@@ -7,7 +7,7 @@
 % Feb 2020
 
 
-clear; close all;
+clear; close all; 
 rng('shuffle');
 addpath(genpath('../../SA_GEK_Hump/'));
 
@@ -21,15 +21,10 @@ options.nfiles = 1;
 options.theta = 'optimum_theta_1';
 % Specify to find new sample "batch" or "verify" existing GEK prediction
 options.objective = 'batch';
-% Number of prediction points to be generated for MSE
-options.npred = 500;
+% Number of prediction points to be generated
+options.npred = 2000;
 % Number of next sample batch points
-options.nbatch = 20;
-% options to control next sample batch cluster
-options.batchmaxrad = 0.05;
-options.batchtanh = 2;
-options.batchxbound = [0 1.5];
-options.batchybound = [0 0.2];
+options.nbatch = 100;
 % Write next sample batch to file
 options.writebatch = false;
 
@@ -55,19 +50,14 @@ time.hyper = toc/60;
 [pred] = predpoints(sample, param, options.objective, options.npred);
 
 % Make GEK predictions
-fprintf('\n----- Making Predictions -----\n');
 tic;
 [pred] = makeprediction(sample, pred, GEK);
 time.prediction = toc/60;
-fprintf('\n----- Predictions Complete -----\n');
 
 % Find next batch of sample points
 if strcmp(options.objective, 'batch')
-    fprintf('\n+++++ Generating next batch of samples +++++\n');
-    tic;
-    [batch] = ...
-        nextbatch(sample, param, GEK, options);
-    time.batch = toc/60;
+   [batch] = ...
+   nextbatch(sample, param, options.nbatch, GEK, options.writebatch);
 else
     batch = [];
 end

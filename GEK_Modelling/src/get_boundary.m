@@ -12,7 +12,7 @@ boundary(par.cw2,:) = [0.055 0.353];
 boundary(par.cw3,:) = [1.5 2.75];
 boundary(par.cv1,:) = [6.9 7.5];
 boundary(par.x,:)   = [-1.0 2.0];
-boundary(par.y,2)   = .5; % only define ymax since ymin depends on hump
+boundary(par.y,:)   = [0 .5];
 
 end
 

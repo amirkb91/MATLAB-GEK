@@ -19,14 +19,15 @@ if strcmp(objective,'batch')
     pred.npoint = npred;
     
     % Halton sequence. Skip and Leap values chosen by user
-    halton.skip = 1e3;
-    halton.leap = nextprime(sample.ndim)*6; % integer multiple of next prime
-    halton.seq = haltonset(sample.ndim,'Skip',halton.skip,'Leap',halton.leap);
-    halton.seq = scramble(halton.seq,'RR2');
+    skip = floor(rand*1e7);
+%     leap = nextprime(sample.ndim)*6; % integer multiple of next prime
+    leap = nthprime(sample.ndim+1)-1;
+    halton = haltonset(sample.ndim,'Skip',skip,'Leap',leap);
+    halton = scramble(halton,'RR2');
     
     % Create prediction points
-    pred.raw = net(halton.seq, pred.npoint);
-    
+    pred.raw = net(halton, pred.npoint);
+        
     % Map prediction points [0 1] to bounds of each parameter.
     [pred.mapped] = map_samples(param, pred.raw);
     

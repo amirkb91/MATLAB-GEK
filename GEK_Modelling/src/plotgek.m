@@ -18,14 +18,20 @@ function [] = plot_mse(sample, param, pred, batch, platform)
 % Get the boundaries of the design parameters for plotting
 boundary = get_boundary(param);
 
+
 fig = figure;
 sgtitle(sprintf('Prediction MSE -- decluster P = %.2f',batch.p));
 
 % MSE of prediction in X-Y space
 subplot(3,1,1);
+
 % interpolate the mse
-interp = scatteredInterpolant(pred.mapped(:,param.x), ...
-    pred.mapped(:,param.y),pred.mse);
+% Include batch points in points to be interpolated for plotting
+interpx = vertcat(pred.mapped(:,param.x), batch.point(:,param.x));
+interpy = vertcat(pred.mapped(:,param.y), batch.point(:,param.y));
+interpz = vertcat(pred.mse, batch.mse);
+interp = scatteredInterpolant(interpx, interpy, interpz);
+
 % plot the mse
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
@@ -47,7 +53,7 @@ area(x,y,0,'FaceColor','w','HandleVisibility','off')
 % plot GEK prediction points
 plot(sample.input(:,param.x),sample.input(:,param.y),'sm');
 plot(batch.point(:,param.x),batch.point(:,param.y),'*r')
-% viscircles(batch.pointxy,batch.radius,'color','k','linewidth',1);
+viscircles(batch.pointxy,real(batch.radius),'color','k','linewidth',1);
 % plot(pred.mapped(:,param.x),pred.mapped(:,param.y),'.y');
 
 %##########################################################################
@@ -55,8 +61,12 @@ plot(batch.point(:,param.x),batch.point(:,param.y),'*r')
 % MSE of prediction in kar-cb1 space
 subplot(3,1,2);
 % interpolate the mse
-interp = scatteredInterpolant(pred.mapped(:,param.kar), ...
-    pred.mapped(:,param.cb1),pred.mse);
+% Include batch points in points to be interpolated for plotting
+interpx = vertcat(pred.mapped(:,param.kar), batch.point(:,param.kar));
+interpy = vertcat(pred.mapped(:,param.cb1), batch.point(:,param.cb1));
+interpz = vertcat(pred.mse, batch.mse);
+interp = scatteredInterpolant(interpx, interpy, interpz);
+
 % plot the mse
 x = linspace(boundary(param.kar,1),boundary(param.kar,2),1000);
 y = linspace(boundary(param.cb1,1),boundary(param.cb1,2),1000);
@@ -78,8 +88,12 @@ plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r')
 % MSE of prediction in sig-cw2 space
 subplot(3,1,3);
 % interpolate the mse
-interp = scatteredInterpolant(pred.mapped(:,param.sig), ...
-    pred.mapped(:,param.cw2),pred.mse);
+% Include batch points in points to be interpolated for plotting
+interpx = vertcat(pred.mapped(:,param.sig), batch.point(:,param.sig));
+interpy = vertcat(pred.mapped(:,param.cw2), batch.point(:,param.cw2));
+interpz = vertcat(pred.mse, batch.mse);
+interp = scatteredInterpolant(interpx, interpy, interpz);
+
 % plot the mse
 x = linspace(boundary(param.sig,1),boundary(param.sig,2),1000);
 y = linspace(boundary(param.cw2,1),boundary(param.cw2,2),1000);

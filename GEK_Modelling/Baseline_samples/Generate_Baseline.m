@@ -9,17 +9,19 @@ clearvars; close all; writefile = false;
 
 %% Create LHS Samples
 
-nsam = 1000;     % number of samples
+nsam = 100;     % number of samples
 npar = 9;      % number of parameters
-rng('shuffle');
+rng shuffle
 
-samples.raw = lhsdesign(nsam,npar);
+% samples.raw = lhsdesign(nsam,npar);
 
-% halton.skip = 1e3;
-% halton.leap = nextprime(npar)*6; % integer multiple of next prime
-% halton.seq = haltonset(npar,'Skip',halton.skip,'Leap',halton.leap);
-% halton.seq = scramble(halton.seq,'RR2');
-% samples.raw = net(halton.seq, nsam);
+% skip = floor(rand*1e7);
+skip = 1e7;
+leap = nextprime(npar)*8; % integer multiple of next prime
+% leap = (nthprime(npar+1)-1);
+halton = haltonset(npar,'Skip',skip,'Leap',leap);
+halton = scramble(halton,'RR2');
+samples.raw = net(halton, nsam);
 
 %% Map LHS Samples onto boundaries
 
@@ -29,12 +31,12 @@ param.cb1=1; param.sig=2; param.cb2=3; param.kar=4;
 param.cw2=5; param.cw3=6; param.cv1=7; param.x=8; param.y=9;
 
 % Find mapped samples and the boundaries
-[samples.mapped] = map_samples_hump(param, samples.raw);
+[samples.mapped] = map_samples(param, samples.raw);
 boundary = get_boundary(param);
 
 %% Plot
 
-f=figure(1); hold on;
+figure(1); hold on;
 % XY samples
 plot(samples.mapped(:,end-1),samples.mapped(:,end),'*r');
 axis equal;
@@ -54,9 +56,15 @@ title('Latin HyperCube XY sample space');
 xlabel('x/c'); ylabel('y/c');
 legend('Sample', 'Geometry boundary', 'Sampling area boundary');
 
+figure(2); hold on;
+
+plot(samples.mapped(:,param.kar),samples.mapped(:,param.cb1),'*r');
+axis equal; grid;
+xlabel('kar'); ylabel('cb1');
+
 %% Save samples to csv file
 if writefile
-    file = fopen('../samples01.dat','w');
+    file = fopen('samples01.dat','w');
     fprintf(file, '%10s,%10s,%10s,%10s,%10s,%10s,%10s,%10s,%10s \n', ...
         'cb1','sig','cb2','kar','cw2','cw3','cv1','X','Y');
     for i = 1:nsam
