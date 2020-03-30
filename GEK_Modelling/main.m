@@ -6,32 +6,31 @@
 % Amir Bagheri
 % Feb 2020
 
+clear; close all; rng('shuffle');
 
-clear; close all;
-rng('shuffle');
+% Change current folder to the folder of this m-file and add all to path.
+if(~isdeployed)
+  cd(fileparts(which(mfilename)));
+end
 addpath(genpath('../../SA_GEK_Hump/'));
 
 %% Set Options for running the code
 
-% Machine to run on (iridis/local)
-options.platform = 'local';
-% Number of sample batches to read from samples folder
-options.nfiles = 1;
-% Specify theta file. If left blank theta is found using Genetic Algorithm
-options.theta = 'optimum_theta_1';
-% Specify to find new sample "batch" or "verify" existing GEK prediction
-options.objective = 'batch';
-% Number of prediction points to be generated for MSE
-options.npred = 500;
-% Number of next sample batch points
-options.nbatch = 20;
-% options to control next sample batch cluster
-options.batchmaxrad = 0.05;
-options.batchtanh = 2;
-options.batchxbound = [0 1.5];
+% General options
+options.platform  = 'local'; % platform to run on (iridis/local)
+options.nfiles    = 1; % Number of files to read from samples folder
+options.theta     = 'optimum_theta_1'; % theta file. If left blank found using GA
+options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
+options.npred     = 500; % number of prediction points to be generated for MSE
+
+% Options for next sample batch
+options.batchnpool  = 500; % number of pool points
+options.nbatch      = 20; % number of next sample batch points
+options.batchmaxrad = 0.07; % maximum exclusion radius 
+options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples
+options.batchxbound = [0 1.5]; % new xy bounds to reduce window size
 options.batchybound = [0 0.2];
-% Write next sample batch to file
-options.writebatch = false;
+options.writebatch  = false; % Write next sample batch to file
 
 
 %% Run program
@@ -59,21 +58,21 @@ fprintf('\n----- Making Predictions -----\n');
 tic;
 [pred] = makeprediction(sample, pred, GEK);
 time.prediction = toc/60;
-fprintf('\n----- Predictions Complete -----\n');
+fprintf('-Complete\n');
 
 % Find next batch of sample points
 if strcmp(options.objective, 'batch')
-    fprintf('\n+++++ Generating next batch of samples +++++\n');
+    fprintf('\n+++++ Generating Batch +++++\n');
     tic;
-    [batch] = ...
-        nextbatch(sample, param, GEK, options);
+    [batch, pool] = nextbatch(sample, param, GEK, options);
     time.batch = toc/60;
+    fprintf('-Complete\n');
 else
-    batch = [];
+    batch = []; pool = [];
 end
 
 % Generate plots
-plotgek(sample, param, pred, batch, options.objective, options.platform)
+plotgek(sample, param, pred, batch, pool, options.objective, options.platform)
 
 % If on IRIDIS save the workspace variables
 if strcmp(options.platform, 'iridis')
@@ -81,7 +80,7 @@ if strcmp(options.platform, 'iridis')
 end
 
 % Confirm success
-fprintf('\n***** GEK Completed Successfully *****\n');
+fprintf('\n***** All Complete *****\n');
 
 
 

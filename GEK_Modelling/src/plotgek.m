@@ -1,18 +1,18 @@
-function [] = plotgek(sample, param, pred, batch, objective, platform)
+function [] = plotgek(sample, param, pred, batch, pool, objective, platform)
 % Generate the plots
 
 close all;
 
 % Depending on objective, choose what to plot
 if strcmp(objective, 'batch')
-    plot_mse(sample, param, pred, batch, platform);
+    plot_mse(sample, param, pred, batch, pool, platform);
 elseif strcmp(objective, 'verify')
     plot_vel(param, pred, platform);
 end
 end
 
 %% MSE Plot
-function [] = plot_mse(sample, param, pred, batch, platform)
+function [] = plot_mse(sample, param, pred, batch, pool, platform)
 % Plot MSE values of the prediction
 
 % Get the boundaries of the design parameters for plotting
@@ -26,10 +26,10 @@ sgtitle(sprintf('Prediction MSE -- decluster P = %.2f',batch.p));
 subplot(3,1,1);
 
 % interpolate the mse
-% Include batch points in points to be interpolated for plotting
-interpx = vertcat(pred.mapped(:,param.x), batch.point(:,param.x));
-interpy = vertcat(pred.mapped(:,param.y), batch.point(:,param.y));
-interpz = vertcat(pred.mse, batch.mse);
+% Include pool in points to be interpolated for plotting
+interpx = vertcat(pred.mapped(:,param.x), pool.mapped(:,param.x));
+interpy = vertcat(pred.mapped(:,param.y), pool.mapped(:,param.y));
+interpz = vertcat(pred.mse, pool.mse);
 interp = scatteredInterpolant(interpx, interpy, interpz);
 
 % plot the mse
@@ -40,6 +40,9 @@ Z = interp(X,Y);
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('x/c'); ylabel('y/c')
+% set lower color bar value to 0
+current_caxis = caxis;
+caxis([0 current_caxis(2)]);
 
 % plot hump
 hump_surface = load('hump_surface.mat');
@@ -53,8 +56,8 @@ area(x,y,0,'FaceColor','w','HandleVisibility','off')
 % plot GEK prediction points
 plot(sample.input(:,param.x),sample.input(:,param.y),'sm');
 plot(batch.point(:,param.x),batch.point(:,param.y),'*r')
-viscircles(batch.pointxy,real(batch.radius),'color','k','linewidth',1);
-% plot(pred.mapped(:,param.x),pred.mapped(:,param.y),'.y');
+viscircles(batch.pointxy,batch.radius,'color','k','linewidth',1);
+plot(interpx,interpy,'.y');
 
 %##########################################################################
 
@@ -62,9 +65,9 @@ viscircles(batch.pointxy,real(batch.radius),'color','k','linewidth',1);
 subplot(3,1,2);
 % interpolate the mse
 % Include batch points in points to be interpolated for plotting
-interpx = vertcat(pred.mapped(:,param.kar), batch.point(:,param.kar));
-interpy = vertcat(pred.mapped(:,param.cb1), batch.point(:,param.cb1));
-interpz = vertcat(pred.mse, batch.mse);
+interpx = vertcat(pred.mapped(:,param.kar), pool.mapped(:,param.kar));
+interpy = vertcat(pred.mapped(:,param.cb1), pool.mapped(:,param.cb1));
+interpz = vertcat(pred.mse, pool.mse);
 interp = scatteredInterpolant(interpx, interpy, interpz);
 
 % plot the mse
@@ -75,13 +78,16 @@ Z = interp(X,Y);
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('kar'); ylabel('cb1')
+% set lower color bar value to 0
+current_caxis = caxis;
+caxis([0 current_caxis(2)]);
 
 % plot next batch of sample points
 % plot initial sample points
 % plot GEK prediction points
 plot(sample.input(:,param.kar),sample.input(:,param.cb1),'sm');
 plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r')
-% plot(pred.mapped(:,param.kar),pred.mapped(:,param.cb1),'.y');
+plot(interpx,interpy,'.y');
 
 %##########################################################################
 
@@ -89,9 +95,9 @@ plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r')
 subplot(3,1,3);
 % interpolate the mse
 % Include batch points in points to be interpolated for plotting
-interpx = vertcat(pred.mapped(:,param.sig), batch.point(:,param.sig));
-interpy = vertcat(pred.mapped(:,param.cw2), batch.point(:,param.cw2));
-interpz = vertcat(pred.mse, batch.mse);
+interpx = vertcat(pred.mapped(:,param.sig), pool.mapped(:,param.sig));
+interpy = vertcat(pred.mapped(:,param.cw2), pool.mapped(:,param.cw2));
+interpz = vertcat(pred.mse, pool.mse);
 interp = scatteredInterpolant(interpx, interpy, interpz);
 
 % plot the mse
@@ -102,13 +108,16 @@ Z=interp(X,Y);
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('sig'); ylabel('cw2')
+% set lower color bar value to 0
+current_caxis = caxis;
+caxis([0 current_caxis(2)]);
 
 % plot next batch of sample points
 % plot initial sample points
 % plot GEK prediction points
 plot(sample.input(:,param.sig),sample.input(:,param.cw2),'sm');
 plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r')
-% plot(pred.mapped(:,param.sig),pred.mapped(:,param.cw2),'.y');
+plot(interpx,interpy,'.y');
 
 %##########################################################################
 

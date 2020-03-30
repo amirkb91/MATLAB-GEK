@@ -1,4 +1,4 @@
-function [batch] = nextbatch(sample, param, GEK, options)
+function [batch, pool] = nextbatch(sample, param, GEK, options)
 % Find next batch of samples in adaptive sampling and decluster in XY
 % input: sample param structs, number of batches and write to file
 % output: next batch of samples
@@ -26,7 +26,7 @@ ybound_new = options.batchybound;
 
 %% Generate pool of points to extract batch from, and make predictions
 
-pool.npoint = 1000;
+pool.npoint = options.batchnpool;
 % Halton sequence. Skip and Leap values chosen by user
 skip = floor(rand*1e7);
 leap = nthprime(sample.ndim+1)-1;
@@ -38,8 +38,6 @@ pool.raw = net(halton, pool.npoint);
 pool.mapped = map_samples(param, pool.raw, xbound_new, ybound_new);
 % Make predictions
 [pool] = makeprediction(sample, pool, GEK);
-% Add pool to batch struct in case needed to use later
-batch.pool = pool;
 
 %% Do interpolation of sumabs of gradients for 7 SA for all sample points
 % The value of this sumabs will determine the radius around each batch
@@ -102,14 +100,15 @@ while i-j <= batch.npoint
         % acquire the value of sumgrad at xy location of qualified batch point 
         sumgrad = sumgrad_interp(batch.pointxy(i-j,1), batch.pointxy(i-j,2));
         % Radius factor is log of the inverse of the sums, plus one so >1 always
-        radius_factor = log10(1+1/sumgrad);
+        % sometimes this can be imaginary, if sumgrad interp gives a
+        % negative value, due to the batch point falling outside of the closed
+        % curve around existing sample points
+        radius_factor = real(log10(1+1/sumgrad));
         % Find radius associated with new sample point
         batch.radius(i-j) = batch.maxrad * tanh(batch.p * radius_factor);
         
         % also assign full point with all 9 samples to point variable
         batch.point(i-j,:) = pool.mapped(pool.mse_sortindex(i),:);
-        % include the mse of this point as well
-        batch.mse(i-j,:) = pool.mse(pool.mse_sortindex(i));
     end
     
     % go to next point

@@ -1,4 +1,4 @@
-function [mapped_samples] = map_samples(par,raw_samples, varargin)
+function [mapped_samples] = map_samples(param,raw_samples, varargin)
 %MAPTOBOUNDS Function to map samples between [0,1] to boundaries of the
 %design parameters. For NASA Hump case.
 
@@ -9,7 +9,7 @@ function [mapped_samples] = map_samples(par,raw_samples, varargin)
 % Output: mapped_samples = samples mapped linearly to the defined bounds
 
 % number of parameters
-npar = length(fieldnames(par));
+npar = length(fieldnames(param));
 % number of samples
 nsam = length(raw_samples);
 % hump surface
@@ -17,12 +17,16 @@ hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;
 
 % Get the boundaries of the parameters
-boundary = get_boundary(par);
+boundary = get_boundary(param);
 
 % over-ride x-y boundary if input is specified (used to map the batch samples)
 if nargin == 4
-    boundary(8,:) = varargin{1};
-    boundary(9,:) = varargin{2};
+    if ~isempty(varargin{1})
+        boundary(param.x,:) = varargin{1};
+    end
+    if ~isempty(varargin{2})
+        boundary(param.y,:) = varargin{2};
+    end
 end
 
 %% Map the Samples to defined bounds
