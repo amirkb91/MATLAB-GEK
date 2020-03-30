@@ -1,2 +1,5 @@
 # Figures Folder
 Figures/
+
+# Temp MATLAB files
+*.m~
