@@ -20,8 +20,8 @@ addpath(genpath('../../SA_GEK_Hump/'));
 options.platform  = 'local'; % platform to run on (iridis/local)
 options.nfiles    = 1; % Number of files to read from samples folder
 options.theta     = 'theta01'; % theta file. If left blank found using GA
-options.objective = 'verify'; % New sample "batch" or "verify" existing GEK prediction
-options.npred     = 1000; % number of prediction points to be generated for MSE
+options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
+options.npred     = 500; % number of prediction points to be generated for MSE
 
 % Options for next sample batch
 options.batchnpool  = 500; % number of pool points
