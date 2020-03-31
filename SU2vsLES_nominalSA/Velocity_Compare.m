@@ -14,10 +14,10 @@ les = load('les.mat'); les = les.les;
 rans = load('rans.mat'); rans = rans.rans;
 
 % Do interpolation since meshes are different and we can't compare node to node
-rans_velx = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3));
-rans_vely = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4));
-les_velx = scatteredInterpolant(les(:,1),les(:,2),les(:,3));
-les_vely = scatteredInterpolant(les(:,1),les(:,2),les(:,4));
+rans_velxint = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'nearest');
+rans_velyint = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'nearest');
+les_velxint = scatteredInterpolant(les(:,1),les(:,2),les(:,3), 'linear', 'nearest');
+les_velyint = scatteredInterpolant(les(:,1),les(:,2),les(:,4), 'linear', 'nearest');
 
 %% Create meshgrid for plotting contours
 % Number of points to plot contour
@@ -29,16 +29,16 @@ y = linspace(0,max(les(:,2)),ypoint)';
 [X,Y] = meshgrid(x,y);
 
 %% Acquire velocities from interpolated function
-rans_velx_int = rans_velx(X,Y); rans_velx_int(isnan(rans_velx_int))=0;
-rans_vely_int = rans_vely(X,Y); rans_vely_int(isnan(rans_vely_int))=0;
-les_velx_int  = les_velx(X,Y); les_velx_int(isnan(les_velx_int))=0;
-les_vely_int  = les_vely(X,Y); les_vely_int(isnan(les_vely_int))=0;
+rans_velx = rans_velxint(X,Y);
+rans_vely = rans_velyint(X,Y);
+les_velx  = les_velxint(X,Y);
+les_vely  = les_velyint(X,Y);
 
 % Find magnitude and angle of velocity vector
-rans_velmag = sqrt(rans_velx_int.^2 + rans_vely_int.^2);
-rans_velang = atan2(rans_vely_int, rans_velx_int);
-les_velmag  = sqrt(les_velx_int.^2 + les_vely_int.^2);
-les_velang  = atan2(les_vely_int, les_velx_int);
+rans_velmag = sqrt(rans_velx.^2 + rans_vely.^2);
+rans_velang = atan2(rans_vely, rans_velx);
+les_velmag  = sqrt(les_velx.^2 + les_vely.^2);
+les_velang  = atan2(les_vely, les_velx);
 
 %% Find difference
 diff_velmag = zeros(ypoint,xpoint);

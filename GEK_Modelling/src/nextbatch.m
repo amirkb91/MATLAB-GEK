@@ -48,7 +48,8 @@ for i=1:sample.npoint
     sumgrad_all(i) = sumabs(sample.outputgrad_norm(i, param.cb1:param.cv1));
 end
 sumgrad_interp = ...
-    scatteredInterpolant(sample.input(:,param.x), sample.input(:,param.y), sumgrad_all);
+    scatteredInterpolant(sample.input(:,param.x), sample.input(:,param.y), ...
+    sumgrad_all, 'linear', 'nearest');
 
 %% Populate batch points
 % Taken from pool points with highest MSE
@@ -100,10 +101,7 @@ while i-j <= batch.npoint
         % acquire the value of sumgrad at xy location of qualified batch point 
         sumgrad = sumgrad_interp(batch.pointxy(i-j,1), batch.pointxy(i-j,2));
         % Radius factor is log of the inverse of the sums, plus one so >1 always
-        % sometimes this can be imaginary, if sumgrad interp gives a
-        % negative value, due to the batch point falling outside of the closed
-        % curve around existing sample points
-        radius_factor = real(log10(1+1/sumgrad));
+        radius_factor = log10(1+1/sumgrad);
         % Find radius associated with new sample point
         batch.radius(i-j) = batch.maxrad * tanh(batch.p * radius_factor);
         

@@ -17,8 +17,16 @@ function [] = plot_mse(sample, param, pred, batch, pool, platform)
 
 % Get the boundaries of the design parameters for plotting
 boundary = get_boundary(param);
+% Since xy of sample point gets shifted to nearest mesh node in SU2,
+% sometimes that nearest node falls outside of this boundary. therefore
+% adjust
+x_min = min(sample.input(:,param.x)); x_max = max(sample.input(:,param.x));
+y_max = max(sample.input(:,param.y));
+if x_min < boundary(param.x,1); boundary(param.x,1) = x_min; end
+if x_max > boundary(param.x,2); boundary(param.x,2) = x_max; end
+if y_max > boundary(param.y,2); boundary(param.y,2) = y_max; end
 
-
+% main figure window
 fig = figure;
 sgtitle(sprintf('Prediction MSE -- decluster P = %.2f',batch.p));
 
@@ -30,13 +38,14 @@ subplot(3,1,1);
 interpx = vertcat(pred.mapped(:,param.x), pool.mapped(:,param.x));
 interpy = vertcat(pred.mapped(:,param.y), pool.mapped(:,param.y));
 interpz = vertcat(pred.mse, pool.mse);
-interp = scatteredInterpolant(interpx, interpy, interpz);
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
-% plot the mse
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
 [X,Y] = meshgrid(x,y);
 Z = interp(X,Y);
+
+% plot the mse
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('x/c'); ylabel('y/c')
@@ -57,24 +66,26 @@ area(x,y,0,'FaceColor','w','HandleVisibility','off')
 plot(sample.input(:,param.x),sample.input(:,param.y),'sm');
 plot(batch.point(:,param.x),batch.point(:,param.y),'*r')
 viscircles(batch.pointxy,batch.radius,'color','k','linewidth',1);
-plot(interpx,interpy,'.y');
+% plot(interpx,interpy,'.y');
 
 %##########################################################################
 
 % MSE of prediction in kar-cb1 space
 subplot(3,1,2);
+
 % interpolate the mse
-% Include batch points in points to be interpolated for plotting
+% Include pool points in points to be interpolated for plotting
 interpx = vertcat(pred.mapped(:,param.kar), pool.mapped(:,param.kar));
 interpy = vertcat(pred.mapped(:,param.cb1), pool.mapped(:,param.cb1));
 interpz = vertcat(pred.mse, pool.mse);
-interp = scatteredInterpolant(interpx, interpy, interpz);
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
-% plot the mse
 x = linspace(boundary(param.kar,1),boundary(param.kar,2),1000);
 y = linspace(boundary(param.cb1,1),boundary(param.cb1,2),1000);
 [X,Y] = meshgrid(x,y);
 Z = interp(X,Y);
+
+% plot the mse
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('kar'); ylabel('cb1')
@@ -87,24 +98,26 @@ caxis([0 current_caxis(2)]);
 % plot GEK prediction points
 plot(sample.input(:,param.kar),sample.input(:,param.cb1),'sm');
 plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r')
-plot(interpx,interpy,'.y');
+% plot(interpx,interpy,'.y');
 
 %##########################################################################
 
 % MSE of prediction in sig-cw2 space
 subplot(3,1,3);
+
 % interpolate the mse
-% Include batch points in points to be interpolated for plotting
+% Include pool points in points to be interpolated for plotting
 interpx = vertcat(pred.mapped(:,param.sig), pool.mapped(:,param.sig));
 interpy = vertcat(pred.mapped(:,param.cw2), pool.mapped(:,param.cw2));
 interpz = vertcat(pred.mse, pool.mse);
-interp = scatteredInterpolant(interpx, interpy, interpz);
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
-% plot the mse
 x = linspace(boundary(param.sig,1),boundary(param.sig,2),1000);
 y = linspace(boundary(param.cw2,1),boundary(param.cw2,2),1000);
 [X,Y] = meshgrid(x,y);
 Z=interp(X,Y);
+
+% plot the mse
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('sig'); ylabel('cw2')
@@ -117,7 +130,7 @@ caxis([0 current_caxis(2)]);
 % plot GEK prediction points
 plot(sample.input(:,param.sig),sample.input(:,param.cw2),'sm');
 plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r')
-plot(interpx,interpy,'.y');
+% plot(interpx,interpy,'.y');
 
 %##########################################################################
 
@@ -135,19 +148,26 @@ function [] = plot_vel(param, pred, platform)
 % Get the boundaries of the design parameters for plotting
 boundary = get_boundary(param);
 
+% main figure window
 fig = figure;
 sgtitle('Velocity Objective Function');
 
 % output of prediction in X-Y space
 subplot(3,1,1)
+
 % interpolate the output
-interp = scatteredInterpolant(pred.mapped(:,param.x), ...
-    pred.mapped(:,param.y),pred.output);
-% plot the output
+% Include pool points in points to be interpolated for plotting
+interpx = pred.mapped(:,param.x);
+interpy = pred.mapped(:,param.y);
+interpz = pred.output;
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
+
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
 [X,Y] = meshgrid(x,y);
 Z = interp(X,Y);
+
+% plot the output
 contourf(X,Y,Z,30,'LineColor','none')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
 
@@ -161,8 +181,8 @@ subplot(3,1,2)
 
 rans = load('rans.mat');
 rans = rans.rans;
-rans_velxinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3));
-rans_velyinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4));
+rans_velxinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'nearest');
+rans_velyinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'nearest');
 
 % Acquire velocities from interpolated function
 rans_velx = rans_velxinterp(X,Y);
@@ -173,7 +193,7 @@ rans_velmag = sqrt(rans_velx.^2 + rans_vely.^2);
 rans_velang = atan2(rans_vely, rans_velx);
 rans_obj = rans_velmag .* rans_velang;
 
-contourf(X, Y, rans_obj,30,'LineColor','none')
+contourf(X,Y,rans_obj,30,'LineColor','none')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
 
 title('RANS SU2');

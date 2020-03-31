@@ -1,4 +1,4 @@
-function [optimum_theta, ln_likelihood] = hyperparameters(sample, theta_file)
+function [theta, ln_likelihood] = hyperparameters(sample, theta_file)
 % Obtain Gaussian Hyperparameter theta
 % We assume Gaussian, therefore only theta is unknown and p=2.
 
@@ -6,10 +6,10 @@ function [optimum_theta, ln_likelihood] = hyperparameters(sample, theta_file)
 if ~isempty(theta_file)
     
     fprintf('\nLoading theta file %s \n', theta_file);
-    optimum_theta = load(theta_file);
-    optimum_theta = optimum_theta.optimum_theta;
+    theta = load(theta_file);
+    theta = theta.theta;
     % find ln linkelihood for this value of theta
-    R = corrmat(sample, optimum_theta); % Get correlation matrix
+    R = corrmat(sample, theta); % Get correlation matrix
     [ln_likelihood] = get_lnlikelihood(R, sample);
     
 else
@@ -23,16 +23,16 @@ else
     [optimum_logtheta, ln_likelihood] = max_lnlikelihood(sample,theta_searchbound);
 
     % Convert log10 to real
-    optimum_theta = 10.^(optimum_logtheta);   
+    theta = 10.^(optimum_logtheta);   
     
 end
 
 % Print theta to screen
 % list of parameters in order
 paras = ["cb1";"sig";"cb2";"kar";"cw2";"cw3";"cv1";"x  ";"y  "];
-[opthe, oppar]=sort(optimum_theta,'descend');
+[opthe, oppar]=sort(theta,'descend');
 fprintf('\n');
-disp('----- Optimum Theta -----')
+disp('--------- Theta ---------')
 disp('~~~~~~~~~~~~~~~~~~~~~~~~~')
 disp('Parameter    Theta(i)')
 for i=1:sample.ndim

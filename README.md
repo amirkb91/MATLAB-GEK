@@ -7,10 +7,18 @@ Main code is in GEK_Modelling. Samples are stored inside folder and read by the 
 -----------------------------------------------------------------------------------------------------------
 Options for running the code:
 
-platform  : Either 'local' or 'iridis'. Determines the number of nodes for parallel run. Code only runs in parellel.
-nfiles    : Number of sample files to read from. All sample files located inside samples folder
-theta     : Specify a theta file, inside the optimum theta folder, or leave blank for GA to calculate a new theta
-objective : Either 'verify' or 'batch'. If batch code will do GEK prediction and find next batch of sample points. if verify code will verify GEK prediction by comparing velocity field to SU2 RANS solution with nominal SA values
-npred     : Number of GEK prediction points
-nbatch    : Number of points in next batch of samples
-writebatch: If true, next batch is written to file and stored inside samples folder
+% General options
+options.platform    = platform to run on (iridis/local)
+options.nfiles      = Number of files to read from samples folder
+options.theta       = Theta file. If left blank found using GA
+options.objective   = New sample "batch" or "verify" existing GEK prediction
+options.npred       = Number of prediction points to be generated for MSE
+
+% Options for next sample batch
+options.batchnpool  = Number of pool points
+options.nbatch      = Number of next sample batch points
+options.batchmaxrad = Maximum exclusion radius 
+options.batchtanh   = Tanh factor p. larger = more space b/w samples
+options.batchxbound = New XY bounds to reduce window size
+options.batchybound = Same as above
+options.writebatch  = Write next sample batch to file
