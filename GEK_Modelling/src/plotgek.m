@@ -1,18 +1,18 @@
-function [] = plotgek(sample, param, pred, batch, pool, objective, platform)
+function [] = plotgek(sample, param, pred, batch, pool, options)
 % Generate the plots
 
 close all;
 
 % Depending on objective, choose what to plot
-if strcmp(objective, 'batch')
-    plot_mse(sample, param, pred, batch, pool, platform);
-elseif strcmp(objective, 'verify')
-    plot_vel(param, pred, platform);
+if strcmp(options.objective, 'batch')
+    plot_mse(sample, param, pred, batch, pool, options);
+elseif strcmp(options.objective, 'verify')
+    plot_vel(param, pred, options);
 end
 end
 
 %% MSE Plot
-function [] = plot_mse(sample, param, pred, batch, pool, platform)
+function [] = plot_mse(sample, param, pred, batch, pool, options)
 % Plot MSE values of the prediction
 
 % Get the boundaries of the design parameters for plotting
@@ -49,9 +49,12 @@ Z = interp(X,Y);
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('x/c'); ylabel('y/c')
-% set lower color bar value to 0
-current_caxis = caxis;
-caxis([0 current_caxis(2)]);
+% set colorbar axis to pool mse
+caxis([0 pool.mse_sortval(1)]);
+
+% plot the batch window rectangle
+rectangle('Position',[options.batchxbound(1) options.batchybound(1) ...
+    options.batchxbound(2) options.batchybound(2)],'EdgeColor','r','LineWidth',2)
 
 % plot hump
 hump_surface = load('hump_surface.mat');
@@ -89,9 +92,8 @@ Z = interp(X,Y);
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('kar'); ylabel('cb1')
-% set lower color bar value to 0
-current_caxis = caxis;
-caxis([0 current_caxis(2)]);
+% set colorbar axis to pool mse
+caxis([0 pool.mse_sortval(1)]);
 
 % plot next batch of sample points
 % plot initial sample points
@@ -121,9 +123,8 @@ Z=interp(X,Y);
 contourf(X,Y,Z,40,'LineColor','none')
 axis equal; colorbar; hold on
 xlabel('sig'); ylabel('cw2')
-% set lower color bar value to 0
-current_caxis = caxis;
-caxis([0 current_caxis(2)]);
+% set colorbar axis to pool mse
+caxis([0 pool.mse_sortval(1)]);
 
 % plot next batch of sample points
 % plot initial sample points
@@ -135,7 +136,7 @@ plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r')
 %##########################################################################
 
 % Save if on IRIDIS
-if strcmp(platform, 'iridis')
+if strcmp(options.platform, 'iridis')
     savefig(fig,'MSE.fig');
 end
 
@@ -227,7 +228,7 @@ end
 %##########################################################################
 
 % Save if on IRIDIS
-if strcmp(platform, 'iridis')
+if strcmp(options.platform, 'iridis')
     savefig(fig,'Velocity.fig');
 end
 end

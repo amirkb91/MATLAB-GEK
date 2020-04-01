@@ -72,7 +72,7 @@ else
 end
 
 % Generate plots
-plotgek(sample, param, pred, batch, pool, options.objective, options.platform)
+plotgek(sample, param, pred, batch, pool, options)
 
 % If on IRIDIS save the workspace variables
 if strcmp(options.platform, 'iridis')
