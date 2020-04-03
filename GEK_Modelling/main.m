@@ -28,10 +28,9 @@ options.batchnpool  = 500; % number of pool points
 options.nbatch      = 20; % number of next sample batch points
 options.batchmaxrad = 0.07; % maximum exclusion radius 
 options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples
-options.batchxbound = [0 1.5]; % new xy bounds to reduce window size
-options.batchybound = [0 0.2];
+options.batchxbound = [0.0 1.5]; % new xy bounds to reduce window size
+options.batchybound = [0.0 0.2];
 options.writebatch  = false; % Write next sample batch to file
-
 
 %% Run program
 
@@ -64,7 +63,7 @@ fprintf('-Complete\n');
 if strcmp(options.objective, 'batch')
     fprintf('\n+++++ Generating Batch +++++\n');
     tic;
-    [batch, pool] = nextbatch(sample, param, GEK, options);
+    [batch, pool, options] = nextbatch(sample, param, GEK, options);
     time.batch = toc/60;
     fprintf('-Complete\n');
 else
@@ -81,7 +80,3 @@ end
 
 % Confirm success
 fprintf('\n***** All Complete *****\n');
-
-
-
-

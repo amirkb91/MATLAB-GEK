@@ -1,7 +1,8 @@
-function [batch, pool] = nextbatch(sample, param, GEK, options)
+function [batch, pool, options] = nextbatch(sample, param, GEK, options)
 % Find next batch of samples in adaptive sampling and decluster in XY
 % input: sample param structs, number of batches and write to file
-% output: next batch of samples
+% output: next batch of samples, pool of new prediction points from which
+% batch is chosen
 
 % Create points to do prediction on and determine the points with
 % highest MSE. These become the samples for the next SU2 iteration.
@@ -15,16 +16,28 @@ function [batch, pool] = nextbatch(sample, param, GEK, options)
 % similar XY values and different SA values, since the output is not that
 % sensitive to SA anyway.
 
+% A pool of samples is created and predictions are made on those points.
+% Batch is then selected from those points. Possible to change the window
+% in which pool is to be created.
+
 %% ****** THESE PARAMETERS CONTROL THE CLUSTERING *******
-% Set the maximum possible radius allowed
+% Maximum possible radius allowed
 batch.maxrad = options.batchmaxrad;
-% Set the tanh multiplication factor. larger p = more space b/w points
-batch.p = options.batchtanh;
-% Set the new x-y boundaries if you want to localise the batch points
-xbound_new = options.batchxbound;
-ybound_new = options.batchybound;
+% tanh multiplication factor. larger p = more space b/w points
+batch.p = options.batchtanh;  
 
 %% Generate pool of points to extract batch from, and make predictions
+
+% if window boundaries haven't been specified, fall on defaults
+if isempty(options.batchxbound) || isempty(options.batchybound)
+    default_boundary = get_boundary(param);
+    if isempty(options.batchxbound)
+        options.batchxbound = default_boundary(param.x,:);
+    end
+    if isempty(options.batchybound)
+        options.batchybound = default_boundary(param.y,:);
+    end    
+end
 
 pool.npoint = options.batchnpool;
 % Halton sequence. Skip and Leap values chosen by user
@@ -33,9 +46,9 @@ leap = nthprime(sample.ndim+1)-1;
 halton = haltonset(sample.ndim,'Skip',skip,'Leap',leap);
 halton = scramble(halton,'RR2');
 pool.raw = net(halton, pool.npoint);
-    
-% Map onto correct boundaries
-pool.mapped = map_samples(param, pool.raw, xbound_new, ybound_new);
+
+% Map onto correct boundaries. xy specified in options
+pool.mapped = map_samples(param, pool.raw, options.batchxbound, options.batchybound);
 % Make predictions
 [pool] = makeprediction(sample, pool, GEK);
 
