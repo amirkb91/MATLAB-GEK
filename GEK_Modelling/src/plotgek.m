@@ -7,7 +7,7 @@ close all;
 if strcmp(options.objective, 'batch')
     plot_mse(sample, param, pred, batch, pool, options);
 elseif strcmp(options.objective, 'verify')
-    plot_vel(param, pred, options);
+    plot_vel(sample, param, pred, options);
 end
 end
 
@@ -67,7 +67,7 @@ addToolbarExplorationButtons(fig);
 interpx_pred = pred.mapped(:,param.x);
 interpy_pred = pred.mapped(:,param.y);
 interpz_pred = pred.mse;
-interp = scatteredInterpolant(interpx_pred, interpy_pred, interpz_pred, 'linear', 'nearest');
+interp = scatteredInterpolant(interpx_pred, interpy_pred, interpz_pred, 'linear', 'linear');
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
 [Xpred,Ypred] = meshgrid(x,y);
@@ -77,7 +77,7 @@ Zpred = interp(Xpred,Ypred);
 interpx_pool = vertcat(pool.mapped(:,param.x), inpool.sample_input(:,param.x));
 interpy_pool = vertcat(pool.mapped(:,param.y), inpool.sample_input(:,param.y));
 interpz_pool = vertcat(pool.mse, inpool.sample_mse);
-interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear', 'nearest');
+interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear', 'linear');
 x = linspace(options.batchxbound(1),options.batchxbound(2),1000);
 y = linspace(options.batchybound(1),options.batchybound(2),1000);
 [Xpool,Ypool] = meshgrid(x,y);
@@ -144,7 +144,7 @@ l.LineWidth = 1.0; l.FontSize = 9.0;
 interpx = vertcat(pool.mapped(:,param.kar), inpool.sample_input(:,param.kar));
 interpy = vertcat(pool.mapped(:,param.cb1), inpool.sample_input(:,param.cb1));
 interpz = vertcat(pool.mse, inpool.sample_mse);
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
 
 x = linspace(boundary(param.kar,1),boundary(param.kar,2),1000);
 y = linspace(boundary(param.cb1,1),boundary(param.cb1,2),1000);
@@ -172,7 +172,7 @@ plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r','linewidth',1)
 interpx = vertcat(pool.mapped(:,param.sig), inpool.sample_input(:,param.sig));
 interpy = vertcat(pool.mapped(:,param.cw2), inpool.sample_input(:,param.cw2));
 interpz = vertcat(pool.mse, inpool.sample_mse);
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
 
 x = linspace(boundary(param.sig,1),boundary(param.sig,2),1000);
 y = linspace(boundary(param.cw2,1),boundary(param.cw2,2),1000);
@@ -202,7 +202,7 @@ end
 end
 
 %% Velocity Plot
-function [] = plot_vel(param, pred, options)
+function [] = plot_vel(sample, param, pred, options)
 % Plot value of prediction which is the velocity objective function
 
 % Get the boundaries of the design parameters for plotting
@@ -221,7 +221,7 @@ subplot(3,1,1)
 interpx = pred.mapped(:,param.x);
 interpy = pred.mapped(:,param.y);
 interpz = pred.output;
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
 
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
@@ -231,6 +231,9 @@ Z = interp(X,Y);
 % plot the output
 contourf(X,Y,Z,30,'LineColor','none')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
+
+% plot sample points
+plot(sample.input(:,param.x),sample.input(:,param.y),'sy','linewidth',1);
 
 title('GEK Prediction');
 xlabel('x/c'); ylabel('y/c')
@@ -242,8 +245,8 @@ subplot(3,1,2)
 
 rans = load('rans.mat');
 rans = rans.rans;
-rans_velxinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'nearest');
-rans_velyinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'nearest');
+rans_velxinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'linear');
+rans_velyinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'linear');
 
 % Acquire velocities from interpolated function
 rans_velx = rans_velxinterp(X,Y);
@@ -269,6 +272,9 @@ diff = abs(Z - rans_obj);
 
 contourf(X,Y,diff,30,'LineColor','none')
 axis equal; colorbar; hold on; caxis([0 1]);
+
+% plot sample points
+plot(sample.input(:,param.x),sample.input(:,param.y),'sy','linewidth',1);
 
 title('|RANS - GEK|');
 xlabel('x/c'); ylabel('y/c')

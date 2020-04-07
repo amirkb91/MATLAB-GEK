@@ -22,7 +22,7 @@ fprintf('\n----- Estimating Gaussian Hyperparameters -----\n');
 % Need to create a nested function with only one input and one output. 
 
 options = optimoptions('ga','UseParallel', true, 'UseVectorized', false, 'Display','iter',...
-    'FunctionTolerance',1e-4, 'PopulationSize', 800, 'MaxGenerations', 2000);
+    'FunctionTolerance',1e-4, 'PopulationSize', 1000, 'MaxGenerations', 2000);
 [optimum_logtheta,min_neglnlikelihood] = ...
     ga(@lnlikelihood,sample.ndim,[],[],[],[],log_theta_lower,log_theta_upper,[],options);
 
