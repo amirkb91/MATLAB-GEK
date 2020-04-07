@@ -18,19 +18,19 @@ addpath(genpath('../../SA_GEK_Hump/'));
 
 % General options
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 1; % Number of files to read from samples folder
+options.nfiles    = 4; % Number of files to read from samples folder
 options.theta     = 'theta01'; % theta file. If left blank found using GA
 options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
 options.npred     = 500; % number of prediction points to be generated for MSE
 
 % Options for next sample batch
 options.batchnpool  = 500; % number of pool points
-options.nbatch      = 20; % number of next sample batch points
+options.nbatch      = 30; % number of next sample batch points
 options.batchmaxrad = 0.1; % maximum exclusion radius 
 options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples
-options.batchxbound = [0.0 1.5]; % new xy bounds to reduce window size
-options.batchybound = [0.0 0.2];
-options.writebatch  = false; % Write next sample batch to file
+options.batchxbound = [0.7 1.45]; % new xy bounds to reduce window size
+options.batchybound = [0.0 0.15];
+options.writebatch  = true; % Write next sample batch to file
 
 %% Run program
 

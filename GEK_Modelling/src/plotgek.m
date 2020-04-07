@@ -136,10 +136,10 @@ for i=1:length(p)
     plot(p{i},batch.point(:,param.x),batch.point(:,param.y),'*r','linewidth',1)
     %     viscircles(p{i},batch.pointxy,batch.radius,'color','k','linewidth',1);
     if i == 1
-        plot(p{i},sample.input(:,param.x),sample.input(:,param.y),'sy','linewidth',1);
+        plot(p{i},sample.input(:,param.x),sample.input(:,param.y),'xy','linewidth',1);
 %         plot(p{i},interpx_pred,interpy_pred,'.m');
     elseif i ==2 % in this plot only plot sample points inside the pool boundary
-        plot(p{i},inpool.sample_input(:,param.x),inpool.sample_input(:,param.y),'sy','linewidth',1);
+        plot(p{i},inpool.sample_input(:,param.x),inpool.sample_input(:,param.y),'xy','linewidth',1);
 %         plot(p{i},interpx_pool,interpy_pool,'.m');
     end
 end
@@ -148,8 +148,8 @@ end
 l = legend(p{1},'Batch','Samples');
 l.Position(1) = c{1}.Position(1);
 l.Position(2) = c{1}.Position(2) - 0.1;
-l.Color = 'c';
-l.LineWidth = 1.0; l.FontSize = 9.0;
+l.Color = 'k'; l.TextColor = 'w';
+l.LineWidth = 1.0; l.FontSize = 9.0; l.FontWeight='bold';
 
 %##########################################################################
 
@@ -175,7 +175,7 @@ caxis([0 pool.mse_sortval(1)]);
 title('Windowed kar-cb1 Design Space');
 
 % plot samples and batch
-plot(inpool.sample_input(:,param.kar),inpool.sample_input(:,param.cb1),'sy','linewidth',1);
+plot(inpool.sample_input(:,param.kar),inpool.sample_input(:,param.cb1),'xy','linewidth',1);
 plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r','linewidth',1)
 % plot(interpx,interpy,'.m');
 
@@ -203,7 +203,7 @@ caxis([0 pool.mse_sortval(1)]);
 title('Windowed sig-cw2 Design Space');
 
 % plot samples and batch
-plot(inpool.sample_input(:,param.sig),inpool.sample_input(:,param.cw2),'sy','linewidth',1);
+plot(inpool.sample_input(:,param.sig),inpool.sample_input(:,param.cw2),'xy','linewidth',1);
 plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r','linewidth',1)
 % plot(interpx,interpy,'.m');
 
@@ -253,13 +253,10 @@ end
 Z = interp(X,Y);
 
 % plot the output
-contourf(X,Y,Z,30,'LineColor','none')
+contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
-
-% plot sample points
-plot(sample.input(:,param.x),sample.input(:,param.y),'sy','linewidth',1);
 
 title('GEK Prediction');
 xlabel('x/c'); ylabel('y/c')
@@ -283,7 +280,7 @@ rans_velmag = sqrt(rans_velx.^2 + rans_vely.^2);
 rans_velang = atan2(rans_vely, rans_velx);
 rans_obj = rans_velmag .* rans_velang;
 
-contourf(X,Y,rans_obj,30,'LineColor','none')
+contourf(X,Y,rans_obj,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
@@ -298,17 +295,25 @@ p{3} = subplot(3,1,3);
 
 diff = abs(Z - rans_obj);
 
-contourf(X,Y,diff,30,'LineColor','none')
+contourf(X,Y,diff,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([0 1]);
 colormap(p{3},'jet');
 
 % plot sample points
-plot(sample.input(:,param.x),sample.input(:,param.y),'ys','linewidth',1);
+plot(sample.input(:,param.x),sample.input(:,param.y),'yx','linewidth',1);
 
 title('|RANS - GEK|');
 xlabel('x/c'); ylabel('y/c')
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
+
+% Add legend and re-position axis
+% pos = p{3}.Position;
+% l = legend(p{3},'Sample');
+% l.Color = 'c';
+% l.LineWidth = 1.0; l.FontSize = 9.0;
+% l.Location = 'northwestoutside';
+% p{3}.Position = pos;
 
 %##########################################################################
 
