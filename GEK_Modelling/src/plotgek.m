@@ -19,6 +19,9 @@ function [] = plot_mse(sample, param, pred, batch, pool, options)
 
 % Get the boundaries of the design parameters for plotting
 boundary = get_boundary(param);
+% Get hump surface
+hump_surface = load('hump_surface.mat');
+hump_surface = hump_surface.hump_surface;
 
 % % % Since xy of sample point gets shifted to nearest mesh node in SU2,
 % % % sometimes that nearest node falls outside of this boundary.
@@ -71,6 +74,12 @@ interp = scatteredInterpolant(interpx_pred, interpy_pred, interpz_pred, 'linear'
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
 [Xpred,Ypred] = meshgrid(x,y);
+% Restack meshgrid to remove y points inside hump
+for i=1:length(x)
+   if Xpred(1,i) > 0 && Xpred(1,i) < 1
+       Ypred(:,i) = linspace(hump_surface(Xpred(1,i)),boundary(param.y,2),length(y))';
+   end
+end
 Zpred = interp(Xpred,Ypred);
 
 % Pool points with inpool appended to include original sample points
@@ -81,6 +90,14 @@ interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear'
 x = linspace(options.batchxbound(1),options.batchxbound(2),1000);
 y = linspace(options.batchybound(1),options.batchybound(2),1000);
 [Xpool,Ypool] = meshgrid(x,y);
+% Restack meshgrid to remove y points inside hump 
+for i=1:length(x)
+   if Xpool(1,i) > 0 && Xpool(1,i) < 1
+       if Ypool(1,i) < hump_surface(Xpool(1,i)) % only if hump located in pool window
+           Ypool(:,i) = linspace(hump_surface(Xpool(1,i)),options.batchybound(2),length(y))';
+       end
+   end
+end
 Zpool = interp(Xpool,Ypool);
 
 % plot the pred mse
@@ -112,12 +129,10 @@ rectangle(p{1},'Position',[options.batchxbound(1) options.batchybound(1) ...
     rec_w rec_h],'EdgeColor','r','LineWidth',2)
 
 % plot hump and samples and batch on both plots
-hump_surface = load('hump_surface.mat');
-hump_surface = hump_surface.hump_surface;
 x = linspace(0,1,1000)';
 y = hump_surface(x);
 for i=1:length(p)
-    area(p{i},x,y,0,'FaceColor','w','HandleVisibility','off')
+    area(p{i},x,y,0,'FaceColor','none','HandleVisibility','off')
     plot(p{i},batch.point(:,param.x),batch.point(:,param.y),'*r','linewidth',1)
     %     viscircles(p{i},batch.pointxy,batch.radius,'color','k','linewidth',1);
     if i == 1
@@ -207,6 +222,9 @@ function [] = plot_vel(sample, param, pred, options)
 
 % Get the boundaries of the design parameters for plotting
 boundary = get_boundary(param);
+% Get hump surface
+hump_surface = load('hump_surface.mat');
+hump_surface = hump_surface.hump_surface;
 
 % Main figure window
 fig = figure;
@@ -214,10 +232,9 @@ sgtitle('Velocity Objective Function');
 addToolbarExplorationButtons(fig);
 
 % output of prediction in X-Y space
-subplot(3,1,1)
+p{1} = subplot(3,1,1);
 
 % interpolate the output
-% Include pool points in points to be interpolated for plotting
 interpx = pred.mapped(:,param.x);
 interpy = pred.mapped(:,param.y);
 interpz = pred.output;
@@ -226,11 +243,20 @@ interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
 [X,Y] = meshgrid(x,y);
+% Restack meshgrid to remove y points inside hump
+for i=1:length(x)
+   if X(1,i) > 0 && X(1,i) < 1
+       Y(:,i) = linspace(hump_surface(X(1,i)),boundary(param.y,2),length(y))';
+   end
+end
+
 Z = interp(X,Y);
 
 % plot the output
 contourf(X,Y,Z,30,'LineColor','none')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
+xlim(boundary(param.x,:));
+ylim(boundary(param.y,:));
 
 % plot sample points
 plot(sample.input(:,param.x),sample.input(:,param.y),'sy','linewidth',1);
@@ -241,7 +267,7 @@ xlabel('x/c'); ylabel('y/c')
 %##########################################################################
 
 % RANS results for Nominal SA
-subplot(3,1,2)
+p{2} = subplot(3,1,2);
 
 rans = load('rans.mat');
 rans = rans.rans;
@@ -259,6 +285,8 @@ rans_obj = rans_velmag .* rans_velang;
 
 contourf(X,Y,rans_obj,30,'LineColor','none')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
+xlim(boundary(param.x,:));
+ylim(boundary(param.y,:));
 
 title('RANS SU2');
 xlabel('x/c'); ylabel('y/c')
@@ -266,29 +294,29 @@ xlabel('x/c'); ylabel('y/c')
 %##########################################################################
 
 % Difference between RANS and GEK
-subplot(3,1,3)
+p{3} = subplot(3,1,3);
 
 diff = abs(Z - rans_obj);
 
 contourf(X,Y,diff,30,'LineColor','none')
 axis equal; colorbar; hold on; caxis([0 1]);
+colormap(p{3},'jet');
 
 % plot sample points
-plot(sample.input(:,param.x),sample.input(:,param.y),'sy','linewidth',1);
+plot(sample.input(:,param.x),sample.input(:,param.y),'ys','linewidth',1);
 
 title('|RANS - GEK|');
 xlabel('x/c'); ylabel('y/c')
+xlim(boundary(param.x,:));
+ylim(boundary(param.y,:));
 
 %##########################################################################
 
 % plot hump
-hump_surface = load('hump_surface.mat');
-hump_surface = hump_surface.hump_surface;
 x = linspace(0,1,1000)';
 y = hump_surface(x);
-for i = 1:3
-    subplot(3,1,i)
-    area(x,y,0,'FaceColor','w','HandleVisibility','off')
+for i = 1:length(p)
+    area(p{i},x,y,0,'FaceColor','none','HandleVisibility','off')
 end
 
 %##########################################################################

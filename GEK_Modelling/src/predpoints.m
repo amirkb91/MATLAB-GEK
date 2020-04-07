@@ -53,30 +53,20 @@ elseif strcmp(objective,'verify')
     xx=linspace(boundary(param.x,1),boundary(param.x,2),len_x)';
     yy=linspace(boundary(param.y,1),boundary(param.y,2),len_y)';
     [XX,YY]=meshgrid(xx,yy);
+    
+    % Restack meshgrid to remove y points inside hump
+    hump_surface = load('hump_surface.mat');
+    hump_surface = hump_surface.hump_surface;    
+    for i=1:len_x
+       if XX(1,i) > 0 && XX(1,i) < 1
+           YY(:,i) = linspace(hump_surface(XX(1,i)),boundary(param.y,2),len_y)';
+       end
+    end    
+    
     % Change into column matrix
     XX = reshape(XX,pred.npoint,1);
     YY = reshape(YY,pred.npoint,1);
     
-    % Remove points which fall inside hump
-    hump_surface = load('hump_surface.mat');
-    hump_surface = hump_surface.hump_surface;
-    
-    len = pred.npoint;
-    i = 1;
-    while i <= len
-        if XX(i) <= 1 && XX(i) >= 0
-            yhump = hump_surface(XX(i));
-            if YY(i) < yhump
-                % remove this point
-                YY(i) = [];
-                XX(i) = [];
-                len = length(XX);
-            end
-        end
-        i = i+1;
-    end
-    % update number of points to reflect those removed
-    pred.npoint = len;
     % nominal SA values
     SAnom = [0.136,0.66667,0.622,0.41,0.3,2,7.1];
     SAnom = repmat(SAnom,pred.npoint,1);
