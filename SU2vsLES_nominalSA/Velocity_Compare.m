@@ -14,12 +14,17 @@ les = load('les.mat'); les = les.les;
 rans = load('rans.mat'); rans = rans.rans;
 
 % Do interpolation since meshes are different and we can't compare node to node
-rans_velxint = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'nearest');
-rans_velyint = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'nearest');
-les_velxint = scatteredInterpolant(les(:,1),les(:,2),les(:,3), 'linear', 'nearest');
-les_velyint = scatteredInterpolant(les(:,1),les(:,2),les(:,4), 'linear', 'nearest');
+rans_velxint = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'linear');
+rans_velyint = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'linear');
+les_velxint = scatteredInterpolant(les(:,1),les(:,2),les(:,3), 'linear', 'linear');
+les_velyint = scatteredInterpolant(les(:,1),les(:,2),les(:,4), 'linear', 'linear');
 
 %% Create meshgrid for plotting contours
+
+% Get hump surface
+hump_surface = load('hump_surface.mat');
+hump_surface = hump_surface.hump_surface;
+
 % Number of points to plot contour
 xpoint = 1000;
 ypoint = 1000;
@@ -27,6 +32,12 @@ ypoint = 1000;
 x = linspace(-1,max(les(:,1)),xpoint)';
 y = linspace(0,max(les(:,2)),ypoint)';
 [X,Y] = meshgrid(x,y);
+% Restack meshgrid to remove y points inside hump
+for i=1:xpoint
+   if X(1,i) > 0 && X(1,i) < 1
+       Y(:,i) = linspace(hump_surface(X(1,i)),max(les(:,2)),ypoint)';
+   end
+end
 
 %% Acquire velocities from interpolated function
 rans_velx = rans_velxint(X,Y);
@@ -94,15 +105,14 @@ title('Difference in Velocity Angle - RANS & LES')
 colorbar
 colormap('jet')
 %% Plot hump on all figures and set axis labels
-hump_surface = load('hump_surface.mat');
-hump_surface = hump_surface.hump_surface;
+
 xhump = linspace(0,1,1000)';
 yhump = hump_surface(xhump);
 
 for i=1:length(fig)
     figure(fig{i})
     hold on
-    area(xhump,yhump,0,'FaceColor','w')
+    area(xhump,yhump,0,'FaceColor','none')
     xlabel('x/c');
     ylabel('y/c');
 end

@@ -8,29 +8,26 @@
 
 clear; close all; rng('shuffle');
 
-% Change current folder to the folder of this m-file and add all to path.
-if(~isdeployed)
-  cd(fileparts(which(mfilename)));
-end
-addpath(genpath('../../SA_GEK_Hump/'));
+% Set path
+addpath(genpath('../'));
 
 %% Set Options for running the code
 
 % General options
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 4; % Number of files to read from samples folder
+options.nfiles    = 1; % Number of files to read from samples folder
 options.theta     = 'theta01'; % theta file. If left blank found using GA
 options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
 options.npred     = 500; % number of prediction points to be generated for MSE
 
 % Options for next sample batch
 options.batchnpool  = 500; % number of pool points
-options.nbatch      = 30; % number of next sample batch points
+options.nbatch      = 20; % number of next sample batch points
 options.batchmaxrad = 0.1; % maximum exclusion radius 
 options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples
-options.batchxbound = [0.7 1.45]; % new xy bounds to reduce window size
-options.batchybound = [0.0 0.15];
-options.writebatch  = true; % Write next sample batch to file
+options.batchxbound = [0.0 1.5]; % new xy bounds to reduce window size
+options.batchybound = [0.0 0.2];
+options.writebatch  = false; % Write next sample batch to file
 
 %% Run program
 
@@ -42,7 +39,7 @@ init_parallel(options.platform);
 
 % Calculate the hyperparameters theta of the Gaussian Correlation Function
 tic;
-[GEK.theta, GEK.ln_likelihood] = hyperparameters(sample, options.theta);
+[GEK.theta, GEK.ln_likelihood] = hyper_param(sample, options.theta);
 time.hyper = toc/60;
 
 % Find Correlation matrix and Kriging mean using the hyperparameters

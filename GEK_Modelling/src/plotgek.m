@@ -153,12 +153,12 @@ l.LineWidth = 1.0; l.FontSize = 9.0; l.FontWeight='bold';
 
 %##########################################################################
 
-% MSE in kar-cb1 space (POOL ONLY)
+% MSE in kar-cb1 space
 
-% Interpolate the mse, inpool appended to include original sample points
-interpx = vertcat(pool.mapped(:,param.kar), inpool.sample_input(:,param.kar));
-interpy = vertcat(pool.mapped(:,param.cb1), inpool.sample_input(:,param.cb1));
-interpz = vertcat(pool.mse, inpool.sample_mse);
+% Interpolate the mse, both pred and pool for full design space
+interpx = vertcat(pred.mapped(:,param.kar), pool.mapped(:,param.kar));
+interpy = vertcat(pred.mapped(:,param.cb1), pool.mapped(:,param.kar));
+interpz = vertcat(pred.mse, pool.mse);
 interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
 
 x = linspace(boundary(param.kar,1),boundary(param.kar,2),1000);
@@ -171,11 +171,11 @@ subplot(3,2,5);
 contourf(X,Y,Z,40,'LineColor','none','HandleVisibility','off')
 colorbar; hold on
 xlabel('kar'); ylabel('cb1')
-caxis([0 pool.mse_sortval(1)]);
-title('Windowed kar-cb1 Design Space');
+caxis([0 max(pred.mse_sortval(1),pool.mse_sortval(1))]);
+title('Full kar-cb1 Design Space');
 
 % plot samples and batch
-plot(inpool.sample_input(:,param.kar),inpool.sample_input(:,param.cb1),'xy','linewidth',1);
+plot(sample.input(:,param.kar),sample.input(:,param.cb1),'xy','linewidth',1);
 plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r','linewidth',1)
 % plot(interpx,interpy,'.m');
 
@@ -183,10 +183,10 @@ plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r','linewidth',1)
 
 % MSE in sig-cw2 space (POOL ONLY)
 
-% Interpolate the mse, inpool appended to include original sample points
-interpx = vertcat(pool.mapped(:,param.sig), inpool.sample_input(:,param.sig));
-interpy = vertcat(pool.mapped(:,param.cw2), inpool.sample_input(:,param.cw2));
-interpz = vertcat(pool.mse, inpool.sample_mse);
+% Interpolate the mse, both pred and pool for full design space
+interpx = vertcat(pred.mapped(:,param.sig), pool.mapped(:,param.sig));
+interpy = vertcat(pred.mapped(:,param.cw2), pool.mapped(:,param.cw2));
+interpz = vertcat(pred.mse, pool.mse);
 interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
 
 x = linspace(boundary(param.sig,1),boundary(param.sig,2),1000);
@@ -199,11 +199,11 @@ subplot(3,2,6);
 contourf(X,Y,Z,40,'LineColor','none','HandleVisibility','off')
 colorbar; hold on
 xlabel('sig'); ylabel('cw2')
-caxis([0 pool.mse_sortval(1)]);
-title('Windowed sig-cw2 Design Space');
+caxis([0 max(pred.mse_sortval(1),pool.mse_sortval(1))]);
+title('Full sig-cw2 Design Space');
 
 % plot samples and batch
-plot(inpool.sample_input(:,param.sig),inpool.sample_input(:,param.cw2),'xy','linewidth',1);
+plot(sample.input(:,param.sig),sample.input(:,param.cw2),'xy','linewidth',1);
 plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r','linewidth',1)
 % plot(interpx,interpy,'.m');
 
@@ -255,6 +255,7 @@ Z = interp(X,Y);
 % plot the output
 contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
+colormap(p{1},'jet');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 
@@ -282,6 +283,7 @@ rans_obj = rans_velmag .* rans_velang;
 
 contourf(X,Y,rans_obj,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
+colormap(p{2},'jet');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 
@@ -298,6 +300,8 @@ diff = abs(Z - rans_obj);
 contourf(X,Y,diff,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([0 1]);
 colormap(p{3},'jet');
+xlim(boundary(param.x,:));
+ylim(boundary(param.y,:));
 
 % plot sample points
 plot(sample.input(:,param.x),sample.input(:,param.y),'yx','linewidth',1);

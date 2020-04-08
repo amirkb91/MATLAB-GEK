@@ -1,4 +1,4 @@
-function [theta, ln_likelihood] = hyperparameters(sample, theta_file)
+function [theta, ln_likelihood] = hyper_param(sample, theta_file)
 % Obtain Gaussian Hyperparameter theta
 % We assume Gaussian, therefore only theta is unknown and p=2.
 
