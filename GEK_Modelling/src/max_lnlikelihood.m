@@ -12,17 +12,12 @@ log_theta_lower = ones(1,sample.ndim).*theta_searchbound(1);
 log_theta_upper = ones(1,sample.ndim).*theta_searchbound(2);
 fprintf('\n----- Estimating Gaussian Hyperparameters -----\n');
 
-%----------------
-% log_theta_lower(end-1:end) = log10([195, 27]);
-% log_theta_upper(end-1:end) = log10([196, 28]);
-%----------------
-
 % Use MATLAB's ga function to find the minimum of the negative ln likelihood
 % function (therefore maximum ln likelihood).
 % Need to create a nested function with only one input and one output. 
 
 options = optimoptions('ga','UseParallel', true, 'UseVectorized', false, 'Display','iter',...
-    'FunctionTolerance',1e-4, 'PopulationSize', 1000, 'MaxGenerations', 2000);
+    'FunctionTolerance',1e-2, 'PopulationSize', 500, 'MaxGenerations', 2000);
 [optimum_logtheta,min_neglnlikelihood] = ...
     ga(@lnlikelihood,sample.ndim,[],[],[],[],log_theta_lower,log_theta_upper,[],options);
 
