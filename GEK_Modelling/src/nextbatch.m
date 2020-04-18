@@ -57,11 +57,6 @@ pool.mapped = map_samples(param, pool.raw, options.batchxbound, options.batchybo
 % point in x-y. This is the sum of the abs of the normalised gradients wrt
 % the SA parameters as given by SU2
 
-% It's possible that we have some sample points with the same x-y but
-% different SA, especially since we do adjoint on the closest mesh in SU2.
-% So suppress warning about duplicate point in XY.
-warning('off', 'scatteredInterpolant:DupPtsAvValuesWarnId');
-
 sumgrad_all = zeros(sample.npoint,1);
 for i=1:sample.npoint
     sumgrad_all(i) = sumabs(sample.outputgrad_norm(i, param.cb1:param.cv1));

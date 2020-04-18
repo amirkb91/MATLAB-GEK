@@ -2,6 +2,13 @@ function [sample, param] = read_io(options)
 % Read the SU2 input and output files 
 % These are the GEK samples
 
+%% Supress Warnings
+% It's possible that we have some sample points with the same x-y but
+% different SA, since we do adjoint on the closest mesh in SU2 some points
+% might fall on the same mesh node.
+% So suppress warning about duplicate point in XY in interpolation.
+warning('off', 'MATLAB:scatteredInterpolant:DupPtsAvValuesWarnId');
+
 %% Create parameter struct and set integers to each parameter
 param.cb1=1; param.sig=2; param.cb2=3; param.kar=4;
 param.cw2=5; param.cw3=6; param.cv1=7; param.x=8; param.y=9;

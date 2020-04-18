@@ -36,6 +36,10 @@ for z=1:sample.ndim
             R_int(i,j) = exp(-theta(z)*d^p);
         end
         k = k+1;
+        % Another way same thing more efficient
+%         d = abs(x(i) - x(k:end));
+%         R_int(i,k:end) = exp(-theta(z).*d.^p)';
+%         k = k+1;        
     end
     R_int = R_int + R_int' + eye(n); % Add transpose to symmetric matrix
     
@@ -43,7 +47,7 @@ for z=1:sample.ndim
 end
 
 % Add small diagonal to make matrix less ill-conditioned
-R = R + eye(n)*1e-6;
+% R = R + eye(n)*1e-6;
 
 % Populate R_gek
 for i=1:n

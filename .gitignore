@@ -1,5 +1,9 @@
 # Figures Folder
 Figures/
+iridisout/
 
 # Temp MATLAB files
 *.m~
+
+# Other files
+get_xysens.m

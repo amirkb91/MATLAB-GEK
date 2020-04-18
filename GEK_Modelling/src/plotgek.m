@@ -7,7 +7,7 @@ close all;
 if strcmp(options.objective, 'batch')
     plot_mse(sample, param, pred, batch, pool, options);
 elseif strcmp(options.objective, 'verify')
-    plot_vel(sample, param, pred, options);
+    plot_vel(sample, param, pred);
 end
 end
 
@@ -70,7 +70,7 @@ addToolbarExplorationButtons(fig);
 interpx_pred = pred.mapped(:,param.x);
 interpy_pred = pred.mapped(:,param.y);
 interpz_pred = pred.mse;
-interp = scatteredInterpolant(interpx_pred, interpy_pred, interpz_pred, 'linear', 'linear');
+interp = scatteredInterpolant(interpx_pred, interpy_pred, interpz_pred, 'linear', 'none');
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
 [Xpred,Ypred] = meshgrid(x,y);
@@ -86,7 +86,7 @@ Zpred = interp(Xpred,Ypred);
 interpx_pool = vertcat(pool.mapped(:,param.x), inpool.sample_input(:,param.x));
 interpy_pool = vertcat(pool.mapped(:,param.y), inpool.sample_input(:,param.y));
 interpz_pool = vertcat(pool.mse, inpool.sample_mse);
-interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear', 'linear');
+interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear', 'none');
 x = linspace(options.batchxbound(1),options.batchxbound(2),1000);
 y = linspace(options.batchybound(1),options.batchybound(2),1000);
 [Xpool,Ypool] = meshgrid(x,y);
@@ -159,7 +159,7 @@ l.LineWidth = 1.0; l.FontSize = 9.0; l.FontWeight='bold';
 interpx = vertcat(pred.mapped(:,param.kar), pool.mapped(:,param.kar));
 interpy = vertcat(pred.mapped(:,param.cb1), pool.mapped(:,param.kar));
 interpz = vertcat(pred.mse, pool.mse);
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'none');
 
 x = linspace(boundary(param.kar,1),boundary(param.kar,2),1000);
 y = linspace(boundary(param.cb1,1),boundary(param.cb1,2),1000);
@@ -187,7 +187,7 @@ plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r','linewidth',1)
 interpx = vertcat(pred.mapped(:,param.sig), pool.mapped(:,param.sig));
 interpy = vertcat(pred.mapped(:,param.cw2), pool.mapped(:,param.cw2));
 interpz = vertcat(pred.mse, pool.mse);
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'none');
 
 x = linspace(boundary(param.sig,1),boundary(param.sig,2),1000);
 y = linspace(boundary(param.cw2,1),boundary(param.cw2,2),1000);
@@ -209,15 +209,10 @@ plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r','linewidth',1)
 
 %##########################################################################
 
-% Save if on IRIDIS
-if strcmp(options.platform, 'iridis')
-    savefig(fig,'MSE.fig');
-end
-
 end
 
 %% Velocity Plot
-function [] = plot_vel(sample, param, pred, options)
+function [] = plot_vel(sample, param, pred)
 % Plot value of prediction which is the velocity objective function
 
 % Get the boundaries of the design parameters for plotting
@@ -330,8 +325,4 @@ end
 
 %##########################################################################
 
-% Save if on IRIDIS
-if strcmp(options.platform, 'iridis')
-    savefig(fig,'Velocity.fig');
-end
 end

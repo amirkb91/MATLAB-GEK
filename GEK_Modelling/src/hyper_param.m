@@ -15,7 +15,7 @@ if ~isempty(theta_file)
 else
     % Do Genetic Algorithm search for best theta to maximise ln likelihood
     % Define lower and upper search boundary of the log10(theta)
-    theta_searchbound = [-7,10];
+    theta_searchbound = [-7,7];
     
     % Find optimum log10(theta) which maximises the ln likelihood function
     % theta is an array with same length as number of dimension; a theta is
@@ -36,10 +36,10 @@ disp('--------- Theta ---------')
 disp('~~~~~~~~~~~~~~~~~~~~~~~~~')
 disp('Parameter    Theta(i)')
 for i=1:sample.ndim
-    line = sprintf('%s          %.4f\n',paras(oppar(i)), opthe(i));
+    line = sprintf('%s          %.3e\n',paras(oppar(i)), opthe(i));
     fprintf(line)
 end
 disp('~~~~~~~~~~~~~~~~~~~~~~~~~')
-fprintf(sprintf('ln Likelihood = %.2f\n',ln_likelihood))
+fprintf(sprintf('ln Likelihood = %.3e\n',ln_likelihood))
 end
 
