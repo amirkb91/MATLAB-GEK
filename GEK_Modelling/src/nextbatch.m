@@ -50,6 +50,7 @@ pool.raw = net(halton, pool.npoint);
 % Map onto correct boundaries. xy specified in options
 pool.mapped = map_samples(param, pool.raw, options.batchxbound, options.batchybound);
 % Make predictions
+fprintf('-Predicting Pool\n');
 [pool] = makeprediction(sample, pool, GEK);
 
 %% Do interpolation of sumabs of gradients for 7 SA for all sample points
@@ -68,18 +69,20 @@ sumgrad_interp = ...
 %% Populate batch points
 % Taken from pool points with highest MSE
 
+fprintf('-Selecting Batch\n');
+
 batch.npoint = options.nbatch;
 
 % Initialise arrays
-batch.pointxy = zeros(batch.npoint,2); % xy points of the batch
-batch.point   = zeros(batch.npoint, sample.ndim); % full ndim points of the batch
-batch.radius  = zeros(batch.npoint,1); % xy radius around each point
-batch.mse     = zeros(batch.npoint,1); % mse of the prediction at these points
+batch.pointxy = NaN(batch.npoint,2); % xy points of the batch
+batch.point   = NaN(batch.npoint, sample.ndim); % full ndim points of the batch
+batch.radius  = NaN(batch.npoint,1); % xy radius around each point
+batch.mse     = NaN(batch.npoint,1); % mse of the prediction at these points
 i = 1; % counter for qualified points
 j = 0; % counter for disqualified points
 disqualified = false;
 
-while i-j <= batch.npoint
+while i-j <= batch.npoint && i <= options.batchnpool
     
     if i == 1
         % The first pred point automatially gets included in batch since
@@ -88,7 +91,7 @@ while i-j <= batch.npoint
     else
         % next candidate point
         candidate = pool.mapped(pool.mse_sortindex(i),(param.x:param.y));
-        % check to see if inside radius of other points, only then qualify
+        % check to see if outside radius of other points, only then qualify
         for k = 1:i-j-1
             dist = pdist([candidate;batch.pointxy(k,:)]);
             if dist <= batch.radius(k)
@@ -121,11 +124,30 @@ while i-j <= batch.npoint
         
         % also assign full point with all 9 samples to point variable
         batch.point(i-j,:) = pool.mapped(pool.mse_sortindex(i),:);
+        % assign the mse of the prediction at the batch points
+        batch.mse(i-j) = pool.mse(pool.mse_sortindex(i));
     end
     
     % go to next point
     i = i+1; disqualified = false;
     
+end
+
+%% Remove unfilled batch indecies if any
+
+% Sometimes we may reach the end of pool points and have selected fewer than the
+% number of requested batch points, because some batch points get
+% disquilified for falling in the radius of others. In that case, remove
+% the entries from the matrix and adjust batch.npoint. batch matrix was
+% initialised with NaN for this reason
+
+if sum(isnan(batch.point),'all') ~= 0   
+   batch.npoint = sum(~isnan(batch.radius)); 
+   batch.pointxy(batch.npoint+1:end,:) = [];
+   batch.point(batch.npoint+1:end,:) = [];
+   batch.radius(batch.npoint+1:end) = [];
+   batch.mse(batch.npoint+1:end) = [];
+   fprintf('-Pool ended before batch: adjusted nbatch = %i\n',batch.npoint);
 end
 
 %% Write new batch of samples to file

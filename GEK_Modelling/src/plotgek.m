@@ -70,7 +70,7 @@ addToolbarExplorationButtons(fig);
 interpx_pred = pred.mapped(:,param.x);
 interpy_pred = pred.mapped(:,param.y);
 interpz_pred = pred.mse;
-interp = scatteredInterpolant(interpx_pred, interpy_pred, interpz_pred, 'linear', 'none');
+interp = scatteredInterpolant(interpx_pred, interpy_pred, interpz_pred, 'linear', 'nearest');
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
 [Xpred,Ypred] = meshgrid(x,y);
@@ -86,7 +86,7 @@ Zpred = interp(Xpred,Ypred);
 interpx_pool = vertcat(pool.mapped(:,param.x), inpool.sample_input(:,param.x));
 interpy_pool = vertcat(pool.mapped(:,param.y), inpool.sample_input(:,param.y));
 interpz_pool = vertcat(pool.mse, inpool.sample_mse);
-interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear', 'none');
+interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear', 'nearest');
 x = linspace(options.batchxbound(1),options.batchxbound(2),1000);
 y = linspace(options.batchybound(1),options.batchybound(2),1000);
 [Xpool,Ypool] = meshgrid(x,y);
@@ -134,7 +134,7 @@ y = hump_surface(x);
 for i=1:length(p)
     area(p{i},x,y,0,'FaceColor','none','HandleVisibility','off')
     plot(p{i},batch.point(:,param.x),batch.point(:,param.y),'*r','linewidth',1)
-    %     viscircles(p{i},batch.pointxy,batch.radius,'color','k','linewidth',1);
+%         viscircles(p{i},batch.pointxy,batch.radius,'color','k','linewidth',1);
     if i == 1
         plot(p{i},sample.input(:,param.x),sample.input(:,param.y),'xy','linewidth',1);
 %         plot(p{i},interpx_pred,interpy_pred,'.m');
@@ -159,7 +159,7 @@ l.LineWidth = 1.0; l.FontSize = 9.0; l.FontWeight='bold';
 interpx = vertcat(pred.mapped(:,param.kar), pool.mapped(:,param.kar));
 interpy = vertcat(pred.mapped(:,param.cb1), pool.mapped(:,param.kar));
 interpz = vertcat(pred.mse, pool.mse);
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'none');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
 x = linspace(boundary(param.kar,1),boundary(param.kar,2),1000);
 y = linspace(boundary(param.cb1,1),boundary(param.cb1,2),1000);
@@ -181,13 +181,13 @@ plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r','linewidth',1)
 
 %##########################################################################
 
-% MSE in sig-cw2 space (POOL ONLY)
+% MSE in sig-cw2 space
 
 % Interpolate the mse, both pred and pool for full design space
 interpx = vertcat(pred.mapped(:,param.sig), pool.mapped(:,param.sig));
 interpy = vertcat(pred.mapped(:,param.cw2), pool.mapped(:,param.cw2));
 interpz = vertcat(pred.mse, pool.mse);
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'none');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
 x = linspace(boundary(param.sig,1),boundary(param.sig,2),1000);
 y = linspace(boundary(param.cw2,1),boundary(param.cw2,2),1000);

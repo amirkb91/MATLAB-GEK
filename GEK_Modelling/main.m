@@ -15,13 +15,13 @@ addpath(genpath('../'));
 
 % General options
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 7; % Number of files to read from samples folder
+options.nfiles    = 1; % Number of files to read from samples folder
 options.theta     = 'theta01_newsens'; % theta file. If left blank found using GA
 options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
-options.npred     = 500; % number of prediction points to be generated for MSE
+options.npred     = 20; % number of prediction points to be generated for MSE
 
 % Options for next sample batch
-options.batchnpool  = 500; % number of pool points
+options.batchnpool  = 100; % number of pool points
 options.nbatch      = 50; % number of next sample batch points
 options.batchmaxrad = 0.1; % maximum exclusion radius 
 options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples
@@ -67,10 +67,12 @@ else
     batch = []; pool = [];
 end
 
-% Generate plots
-plotgek(sample, param, pred, batch, pool, options)
+% Generate plots if on local
+if strcmp(options.platform, 'local')
+    plotgek(sample, param, pred, batch, pool, options)
+end
 
-% If on IRIDIS save the workspace variables
+% Save the workspace variables if on Iridis
 if strcmp(options.platform, 'iridis')
     save(sprintf('../iridisout/allvars_%s',options.objective));
 end
