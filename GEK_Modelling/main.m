@@ -18,10 +18,10 @@ options.platform  = 'local'; % platform to run on (iridis/local)
 options.nfiles    = 1; % Number of files to read from samples folder
 options.theta     = 'theta01_newsens'; % theta file. If left blank found using GA
 options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
-options.npred     = 20; % number of prediction points to be generated for MSE
+options.npred     = 500; % number of prediction points
 
 % Options for next sample batch
-options.batchnpool  = 100; % number of pool points
+options.batchnpool  = 500; % number of pool points
 options.nbatch      = 50; % number of next sample batch points
 options.batchmaxrad = 0.1; % maximum exclusion radius 
 options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples

@@ -118,7 +118,8 @@ for z1=1:sample.ndim
         end
     end
 end
-% R_gek(abs(R_gek)<=1e-16) = 0;
+% Discard computationally small values for numerical stability
+R_gek(abs(R_gek)<=1e-16) = 0;
 end
 
 

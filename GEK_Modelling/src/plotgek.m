@@ -222,8 +222,8 @@ hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;
 
 % Main figure window
-fig = figure;
-sgtitle('Velocity Objective Function');
+fig = figure(1);
+sgtitle('Velocity Objective Function Nominal SA');
 addToolbarExplorationButtons(fig);
 
 % output of prediction in X-Y space
@@ -233,7 +233,7 @@ p{1} = subplot(3,1,1);
 interpx = pred.mapped(:,param.x);
 interpy = pred.mapped(:,param.y);
 interpz = pred.output;
-interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'linear');
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
 x = linspace(boundary(param.x,1),boundary(param.x,2),1000);
 y = linspace(boundary(param.y,1),boundary(param.y,2),1000);
@@ -257,6 +257,9 @@ ylim(boundary(param.y,:));
 title('GEK Prediction');
 xlabel('x/c'); ylabel('y/c')
 
+% plot sample points
+plot(sample.input(:,param.x),sample.input(:,param.y),'rx','linewidth',1);
+
 %##########################################################################
 
 % RANS results for Nominal SA
@@ -264,8 +267,8 @@ p{2} = subplot(3,1,2);
 
 rans = load('rans.mat');
 rans = rans.rans;
-rans_velxinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'linear');
-rans_velyinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'linear');
+rans_velxinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,3), 'linear', 'nearest');
+rans_velyinterp = scatteredInterpolant(rans(:,1),rans(:,2),rans(:,4), 'linear', 'nearest');
 
 % Acquire velocities from interpolated function
 rans_velx = rans_velxinterp(X,Y);
@@ -292,27 +295,39 @@ p{3} = subplot(3,1,3);
 
 diff = abs(Z - rans_obj);
 
-contourf(X,Y,diff,30,'LineColor','none','HandleVisibility','off')
+contourf(X,Y,diff,20,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([0 1]);
 colormap(p{3},'jet');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
-
-% plot sample points
-plot(sample.input(:,param.x),sample.input(:,param.y),'yx','linewidth',1);
 
 title('|RANS - GEK|');
 xlabel('x/c'); ylabel('y/c')
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 
-% Add legend and re-position axis
-% pos = p{3}.Position;
-% l = legend(p{3},'Sample');
-% l.Color = 'c';
-% l.LineWidth = 1.0; l.FontSize = 9.0;
-% l.Location = 'northwestoutside';
-% p{3}.Position = pos;
+%##########################################################################
+
+% Figure 2, plot MSE of the prediction with Nominal SA
+
+% Use previous meshgrid and interpx and interpy
+interpz = pred.mse;
+interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
+Z = interp(X,Y);
+
+% Main figure window
+fig = figure(2);
+addToolbarExplorationButtons(fig);
+
+% plot the MSE
+contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
+axis equal; colorbar; hold on; caxis([-1 1.1]);
+caxis([0 pred.mse_sortval(1)]);
+xlim(boundary(param.x,:));
+ylim(boundary(param.y,:));
+xlabel('x/c'); ylabel('y/c')
+title('GEK Prediction MSE Nominal SA');
+p{4} = fig.CurrentAxes;
 
 %##########################################################################
 
@@ -324,5 +339,4 @@ for i = 1:length(p)
 end
 
 %##########################################################################
-
 end
