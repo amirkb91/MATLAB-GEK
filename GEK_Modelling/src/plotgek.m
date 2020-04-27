@@ -248,7 +248,8 @@ end
 Z = interp(X,Y);
 
 % plot the output
-contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
+contlevels = linspace(-1,1.1,30);
+contourf(X,Y,Z,contlevels,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
 colormap(p{1},'jet');
 xlim(boundary(param.x,:));
@@ -256,9 +257,6 @@ ylim(boundary(param.y,:));
 
 title('GEK Prediction');
 xlabel('x/c'); ylabel('y/c')
-
-% plot sample points
-plot(sample.input(:,param.x),sample.input(:,param.y),'rx','linewidth',1);
 
 %##########################################################################
 
@@ -279,7 +277,8 @@ rans_velmag = sqrt(rans_velx.^2 + rans_vely.^2);
 rans_velang = atan2(rans_vely, rans_velx);
 rans_obj = rans_velmag .* rans_velang;
 
-contourf(X,Y,rans_obj,30,'LineColor','none','HandleVisibility','off')
+contlevels = linspace(-1,1.1,30);
+contourf(X,Y,rans_obj,contlevels,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
 colormap(p{2},'jet');
 xlim(boundary(param.x,:));
@@ -295,8 +294,9 @@ p{3} = subplot(3,1,3);
 
 diff = abs(Z - rans_obj);
 
-contourf(X,Y,diff,20,'LineColor','none','HandleVisibility','off')
-axis equal; colorbar; hold on; caxis([0 1]);
+contlevels = linspace(0,max(diff,[],'all'),30);
+contourf(X,Y,diff,contlevels,'LineColor','none','HandleVisibility','off')
+axis equal; colorbar; hold on;
 colormap(p{3},'jet');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
@@ -305,6 +305,9 @@ title('|RANS - GEK|');
 xlabel('x/c'); ylabel('y/c')
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
+
+% plot sample points
+plot(sample.input(:,param.x),sample.input(:,param.y),'rx','linewidth',0.5);
 
 %##########################################################################
 
@@ -320,8 +323,9 @@ fig = figure(2);
 addToolbarExplorationButtons(fig);
 
 % plot the MSE
-contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
-axis equal; colorbar; hold on; caxis([-1 1.1]);
+contlevels = linspace(0,max(Z,[],'all'),30);
+contourf(X,Y,Z,contlevels,'LineColor','none','HandleVisibility','off')
+axis equal; colorbar; hold on; %caxis([-1 1.1]);
 caxis([0 pred.mse_sortval(1)]);
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));

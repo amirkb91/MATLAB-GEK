@@ -47,7 +47,7 @@ for z=1:sample.ndim
 end
 
 % Add small diagonal to make matrix less ill-conditioned
-% R = R + eye(n)*1e-6;
+R = R + eye(n)*eps;
 
 % Populate R_gek
 for i=1:n
@@ -119,7 +119,7 @@ for z1=1:sample.ndim
     end
 end
 % Discard computationally small values for numerical stability
-R_gek(abs(R_gek)<=1e-16) = 0;
+R_gek(abs(R_gek)<eps) = 0;
 end
 
 

@@ -54,10 +54,10 @@ lnlikelihood_max = -min_neglnlikelihood;
         
         [U,q] = chol(R_gek); % Cholesky Factorisation
         
-        if q>0
+        if q~=0
             % R is ill conditioned so discard neglnlike in genetic algorighm search
             % by assigning a high value. This ensures we get a well conditioned R
-            neglnlike = 1e5;
+            neglnlike = 1e20;
         else            
             mu = (one'*(U\(U'\sample.output_aug)))/(one'*(U\(U'\one)));
             sighat=((sample.output_aug-one*mu)'*(U\(U'\(sample.output_aug-one*mu))))/sample.npoint_gek;
