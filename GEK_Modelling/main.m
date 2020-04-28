@@ -15,9 +15,9 @@ addpath(genpath('../'));
 
 % General options
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 9; % Number of files to read from samples folder
-options.theta     = 'theta09_newsens'; % theta file. If left blank found using GA
-options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
+options.nfiles    = 3; % Number of files to read from samples folder
+options.theta     = 'theta01_newsens'; % theta file. If left blank found using GA
+options.objective = 'verify'; % New sample "batch" or "verify" existing GEK prediction
 options.npred     = 700; % number of prediction points
 
 % Options for next sample batch

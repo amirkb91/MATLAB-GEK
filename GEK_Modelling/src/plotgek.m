@@ -248,10 +248,9 @@ end
 Z = interp(X,Y);
 
 % plot the output
-contlevels = linspace(-1,1.1,30);
-contourf(X,Y,Z,contlevels,'LineColor','none','HandleVisibility','off')
+contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
-colormap(p{1},'jet');
+colormap(p{1},'default');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 
@@ -277,10 +276,9 @@ rans_velmag = sqrt(rans_velx.^2 + rans_vely.^2);
 rans_velang = atan2(rans_vely, rans_velx);
 rans_obj = rans_velmag .* rans_velang;
 
-contlevels = linspace(-1,1.1,30);
-contourf(X,Y,rans_obj,contlevels,'LineColor','none','HandleVisibility','off')
+contourf(X,Y,rans_obj,30,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on; caxis([-1 1.1]);
-colormap(p{2},'jet');
+colormap(p{2},'default');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 
@@ -294,7 +292,7 @@ p{3} = subplot(3,1,3);
 
 diff = abs(Z - rans_obj);
 
-contlevels = linspace(0,max(diff,[],'all'),30);
+contlevels = linspace(0,1,20);
 contourf(X,Y,diff,contlevels,'LineColor','none','HandleVisibility','off')
 axis equal; colorbar; hold on;
 colormap(p{3},'jet');
@@ -323,9 +321,9 @@ fig = figure(2);
 addToolbarExplorationButtons(fig);
 
 % plot the MSE
-contlevels = linspace(0,max(Z,[],'all'),30);
+contlevels = linspace(0,1,20);
 contourf(X,Y,Z,contlevels,'LineColor','none','HandleVisibility','off')
-axis equal; colorbar; hold on; %caxis([-1 1.1]);
+axis equal; colorbar; hold on; %caxis([0 1.0]);
 caxis([0 pred.mse_sortval(1)]);
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
