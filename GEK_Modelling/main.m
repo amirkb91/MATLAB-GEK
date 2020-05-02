@@ -15,18 +15,17 @@ addpath(genpath('../'));
 
 % General options
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 3; % Number of files to read from samples folder
+options.nfiles    = 4; % Number of files to read from samples folder
 options.theta     = 'theta01_newsens'; % theta file. If left blank found using GA
-options.objective = 'verify'; % New sample "batch" or "verify" existing GEK prediction
-options.npred     = 700; % number of prediction points
+options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
+options.npred     = 3000; % number of prediction points
 
 % Options for next sample batch
-options.batchnpool  = 700; % number of pool points
-options.nbatch      = 50; % number of next sample batch points
+options.nbatch      = 100; % number of next sample batch points
 options.batchmaxrad = 0.1; % maximum exclusion radius 
 options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples
-options.batchxbound = [0.7 1.3]; % new xy bounds to reduce window size
-options.batchybound = [0 0.1];
+options.batchxbound = [0.8 1.1]; % new xy bounds to reduce window size
+options.batchybound = [0 0.15];
 options.writebatch  = false; % Write next sample batch to file
 
 %% Run program
@@ -58,10 +57,8 @@ fprintf('-Complete\n');
 
 % Find next batch of sample points
 if strcmp(options.objective, 'batch')
-    fprintf('\n+++++ Generating Batch +++++\n');
-    tic;
-    [batch, pool, options] = nextbatch(sample, param, GEK, options);
-    time.batch = toc/60;
+    fprintf('\n+++++ Selecting Batch +++++\n');
+    [batch, pool, options] = nextbatch(sample, pred, param, options);
     fprintf('-Complete\n');
 else
     batch = []; pool = [];

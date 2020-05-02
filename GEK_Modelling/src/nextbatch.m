@@ -1,10 +1,10 @@
-function [batch, pool, options] = nextbatch(sample, param, GEK, options)
+function [batch, pool, options] = nextbatch(sample, pred, param, options)
 % Find next batch of samples in adaptive sampling and decluster in XY
-% input: sample param structs, number of batches and write to file
-% output: next batch of samples, pool of new prediction points from which
+% input: sample param structs, pred points and options
+% output: next batch of samples, pool of prediction points from which
 % batch is chosen
 
-% Create points to do prediction on and determine the points with
+% Determine prediction points with the
 % highest MSE. These become the samples for the next SU2 iteration.
 % The highest mse value will automatically become the first sample point in
 % the next SU2 iteration. After that, a radius will be assinged in x and y
@@ -16,17 +16,10 @@ function [batch, pool, options] = nextbatch(sample, param, GEK, options)
 % similar XY values and different SA values, since the output is not that
 % sensitive to SA anyway.
 
-% A pool of samples is created and predictions are made on those points.
-% Batch is then selected from those points. Possible to change the window
-% in which pool is to be created.
+% A pool is created from select prediction points which fall inside the user
+% specified XY boundaries. Batch is then selected from those points.
 
-%% ****** THESE PARAMETERS CONTROL THE CLUSTERING *******
-% Maximum possible radius allowed
-batch.maxrad = options.batchmaxrad;
-% tanh multiplication factor. larger p = more space b/w points
-batch.p = options.batchtanh;  
-
-%% Generate pool of points to extract batch from, and make predictions
+%% Select pool of points to extract batch from
 
 % if window boundaries haven't been specified, fall on defaults
 if isempty(options.batchxbound) || isempty(options.batchybound)
@@ -39,19 +32,23 @@ if isempty(options.batchxbound) || isempty(options.batchybound)
     end    
 end
 
-pool.npoint = options.batchnpool;
-% Halton sequence. Skip and Leap values chosen by user
-skip = floor(rand*1e7);
-leap = nthprime(sample.ndim+1)-1;
-halton = haltonset(sample.ndim,'Skip',skip,'Leap',leap);
-halton = scramble(halton,'RR2');
-pool.raw = net(halton, pool.npoint);
-
-% Map onto correct boundaries. xy specified in options
-pool.mapped = map_samples(param, pool.raw, options.batchxbound, options.batchybound);
-% Make predictions
-fprintf('-Predicting Pool\n');
-[pool] = makeprediction(sample, pool, GEK);
+% Pool equals the pred points which fall inside the user specified boundary
+pool.mapped = [];
+pool.output = [];
+pool.mse = [];
+for i = 1:pred.npoint
+    if pred.mapped(i,param.x) >= options.batchxbound(1) && ...
+       pred.mapped(i,param.x) <= options.batchxbound(2) && ...
+       pred.mapped(i,param.y) >= options.batchybound(1) && ...
+       pred.mapped(i,param.y) <= options.batchybound(2)
+   
+       pool.mapped = cat(1,pool.mapped,pred.mapped(i,:));
+       pool.output = cat(1,pool.output,pred.output(i,:));
+       pool.mse    = cat(1,pool.mse,pred.mse(i,:));
+    end
+end
+pool.npoint = size(pool.mapped,1);
+[pool.mse_sortval, pool.mse_sortindex] = sort(pool.mse,'descend');
 
 %% Do interpolation of sumabs of gradients for 7 SA for all sample points
 % The value of this sumabs will determine the radius around each batch
@@ -69,11 +66,14 @@ sumgrad_interp = ...
 %% Populate batch points
 % Taken from pool points with highest MSE
 
-fprintf('-Selecting Batch\n');
-
-batch.npoint = options.nbatch;
+% THESE PARAMETERS CONTROL THE CLUSTERING
+% Maximum possible radius allowed
+batch.maxrad = options.batchmaxrad;
+% tanh multiplication factor. larger p = more space b/w points
+batch.p = options.batchtanh;  
 
 % Initialise arrays
+batch.npoint  = options.nbatch;
 batch.pointxy = NaN(batch.npoint,2); % xy points of the batch
 batch.point   = NaN(batch.npoint, sample.ndim); % full ndim points of the batch
 batch.radius  = NaN(batch.npoint,1); % xy radius around each point
@@ -82,10 +82,10 @@ i = 1; % counter for qualified points
 j = 0; % counter for disqualified points
 disqualified = false;
 
-while i-j <= batch.npoint && i <= options.batchnpool
+while i-j <= batch.npoint && i <= pool.npoint
     
     if i == 1
-        % The first pred point automatially gets included in batch since
+        % The first pool point automatially gets included in batch since
         % there is no other radius yet
         batch.pointxy(i-j,:) = pool.mapped(pool.mse_sortindex(i),(param.x:param.y));
     else

@@ -8,70 +8,42 @@ if ~strcmp(objective,'batch') && ~strcmp(objective,'verify')
     error('Wrong objective options specified');
 end
 
-if strcmp(objective,'batch')
-    % Need prediction points across all design parameters in order to
-    % obtain MSE and judge location for next batch of samples.
-    
-    % Need a unifrom distribution of points across the boundaries of each
-    % design parameter. Done using Halton sequences.
-    
-    % Number of prediction points (original sample points will also be added)
-    pred.npoint = npred;
-    
-    % Halton sequence. Skip and Leap values chosen by user
-    skip = floor(rand*1e7);
-%     leap = nextprime(sample.ndim)*6; % integer multiple of next prime
-    leap = nthprime(sample.ndim+1)-1;
-    halton = haltonset(sample.ndim,'Skip',skip,'Leap',leap);
-    halton = scramble(halton,'RR2');
-    
-    % Create prediction points
-    pred.raw = net(halton, pred.npoint);
-        
-    % Map prediction points [0 1] to bounds of each parameter.
-    [pred.mapped] = map_samples(param, pred.raw);
-    
-    % Add original sample points to the prediction points matrix. The GEK MSE
-    % at these points should be ~0
+% Create prediction points
+% Need a unifrom distribution of points across the boundaries of each
+% design parameter. Done using Halton sequences.
+
+% Number of prediction points as specified by user
+pred.npoint = npred;
+
+% Halton sequence. Skip and Leap values defined here
+skip = floor(rand*1e7);
+% leap = nextprime(sample.ndim)*6; % integer multiple of next prime
+leap = nthprime(sample.ndim+1)-1;
+halton = haltonset(sample.ndim,'Skip',skip,'Leap',leap);
+halton = scramble(halton,'RR2');
+
+% Create prediction points
+pred.raw = net(halton, pred.npoint);
+
+% Map prediction points [0 1] to bounds of each parameter.
+[pred.mapped] = map_samples(param, pred.raw);
+
+if strcmp(objective,'batch')   
+    % for batch objective, add original sample points to the prediction points
+    % matrix. the GEK MSE at these points should be ~0    
     pred.mapped = vertcat(pred.mapped, sample.input);
     pred.npoint = pred.npoint + sample.npoint;
-    
+
 elseif strcmp(objective,'verify')
-    
-    % Verify if GEK is producing same output for velocity objective
-    % function than SU2 RANS at nomincal SA. Need to create prediction
-    % points in XY only, spaced equally in X and Y.
-    
-    % number of points in X-Y. Assume 5 times as many points in X than in Y.
-    % 5*y^2 = npred
-    len_y = ceil(sqrt(npred/5));
-    len_x = len_y * 5;
-    
-    pred.npoint = len_x*len_y;
-    % Create meshgrid
-    boundary = get_boundary(param);
-    xx=linspace(boundary(param.x,1),boundary(param.x,2),len_x)';
-    yy=linspace(boundary(param.y,1),boundary(param.y,2),len_y)';
-    [XX,YY]=meshgrid(xx,yy);
-    
-    % Restack meshgrid to remove y points inside hump
-    hump_surface = load('hump_surface.mat');
-    hump_surface = hump_surface.hump_surface;    
-    for i=1:len_x
-       if XX(1,i) > 0 && XX(1,i) < 1
-           YY(:,i) = linspace(hump_surface(XX(1,i)),boundary(param.y,2),len_y)';
-       end
-    end    
-    
-    % Change into column matrix
-    XX = reshape(XX,pred.npoint,1);
-    YY = reshape(YY,pred.npoint,1);
-    
+    % for verify objective, replace all SA values in prediction matrix with
+    % nominal SA. Verify if GEK is producing same output for velocity objective
+    % function than SU2 RANS at nomincal SA.
+   
     % nominal SA values
     SAnom = [0.136,0.66667,0.622,0.41,0.3,2,7.1];
     SAnom = repmat(SAnom,pred.npoint,1);
     % populate prediction points
-    pred.mapped = horzcat(SAnom,XX,YY);
+    pred.mapped = horzcat(SAnom,pred.mapped(:,param.x),pred.mapped(:,param.y));
 end
 
 end

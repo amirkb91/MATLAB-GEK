@@ -23,39 +23,19 @@ boundary = get_boundary(param);
 hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;
 
-% % % Since xy of sample point gets shifted to nearest mesh node in SU2,
-% % % sometimes that nearest node falls outside of this boundary.
-% % % Therefore adjust the boundary
-% % x_min = min(sample.input(:,param.x)); x_max = max(sample.input(:,param.x));
-% % y_max = max(sample.input(:,param.y));
-% % if x_min < boundary(param.x,1); boundary(param.x,1) = x_min; end
-% % if x_max > boundary(param.x,2); boundary(param.x,2) = x_max; end
-% % if y_max > boundary(param.y,2); boundary(param.y,2) = y_max; end
-
-% Extract original sample points which fall in batch pool boundaries
-inpool.sample_input = zeros(1,sample.ndim);
-inpool.sample_index = []; % to store index of those points
-j = 1;
+% Extract sample points which fall in batch boundaries
+sample.input_pool = [];
 for i=1:sample.npoint
     if sample.input(i,param.x) >= options.batchxbound(1) && ...
-            sample.input(i,param.x) <= options.batchxbound(2)
-        if sample.input(i,param.y) >= options.batchybound(1) && ...
-            sample.input(i,param.y) <= options.batchybound(2)    
-            inpool.sample_input(j,1:sample.ndim) = sample.input(i,1:sample.ndim);
-            inpool.sample_index(j,1) = i;
-            j = j + 1;
-        end
+       sample.input(i,param.x) <= options.batchxbound(2) && ...
+       sample.input(i,param.y) >= options.batchybound(1) && ...
+       sample.input(i,param.y) <= options.batchybound(2)    
+       
+       sample.input_pool = cat(1,sample.input_pool,sample.input(i,:));
+        
     end
 end
-% MSEs of these samples have already been calculated inside predpoints.m,
-% since they were appended to pred. Extract the MSE as well so that we can
-% add it to the plot
-inpool.sample_mse = zeros(length(inpool.sample_index),1);
-for i = 1:length(inpool.sample_index)
-    % the index of the point is the number of pred points + the sample
-    % index, since the samples were appended at the tail of pred inside predpoints.m
-    inpool.sample_mse(i,1) = pred.mse(options.npred + inpool.sample_index(i));
-end
+
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 % main figure window
@@ -82,10 +62,10 @@ for i=1:length(x)
 end
 Zpred = interp(Xpred,Ypred);
 
-% Pool points with inpool appended to include original sample points
-interpx_pool = vertcat(pool.mapped(:,param.x), inpool.sample_input(:,param.x));
-interpy_pool = vertcat(pool.mapped(:,param.y), inpool.sample_input(:,param.y));
-interpz_pool = vertcat(pool.mse, inpool.sample_mse);
+% Pool points
+interpx_pool = pool.mapped(:,param.x);
+interpy_pool = pool.mapped(:,param.y);
+interpz_pool = pool.mse;
 interp = scatteredInterpolant(interpx_pool, interpy_pool, interpz_pool, 'linear', 'nearest');
 x = linspace(options.batchxbound(1),options.batchxbound(2),1000);
 y = linspace(options.batchybound(1),options.batchybound(2),1000);
@@ -102,22 +82,24 @@ Zpool = interp(Xpool,Ypool);
 
 % plot the pred mse
 p{1} = subplot(3,2,[1,2]);
-contourf(Xpred,Ypred,Zpred,40,'LineColor','none','HandleVisibility','off');
+contlevels = linspace(0,pred.mse_sortval(1),40);
+contourf(Xpred,Ypred,Zpred,contlevels,'LineColor','none','HandleVisibility','off');
 axis equal; hold on
 c{1} = colorbar(p{1});
 xlabel('x/c'); ylabel('y/c')
-caxis([0 pred.mse_sortval(1)]);
+% caxis([0 pred.mse_sortval(1)]);
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 title('Full X-Y Design Space');
 
 % plot the pool mse
 p{2} = subplot(3,2,[3,4]);
-contourf(Xpool,Ypool,Zpool,40,'LineColor','none','HandleVisibility','off');
+contlevels = linspace(0,pool.mse_sortval(1),40);
+contourf(Xpool,Ypool,Zpool,contlevels,'LineColor','none','HandleVisibility','off');
 axis equal; hold on
 c{2} = colorbar(p{2});
 xlabel('x/c'); ylabel('y/c')
-caxis([0 pool.mse_sortval(1)]);
+% caxis([0 pool.mse_sortval(1)]);
 xlim(options.batchxbound);
 ylim(options.batchybound);
 title('Windowed X-Y Design Space');
@@ -139,7 +121,7 @@ for i=1:length(p)
         plot(p{i},sample.input(:,param.x),sample.input(:,param.y),'xy','linewidth',1);
 %         plot(p{i},interpx_pred,interpy_pred,'.m');
     elseif i ==2 % in this plot only plot sample points inside the pool boundary
-        plot(p{i},inpool.sample_input(:,param.x),inpool.sample_input(:,param.y),'xy','linewidth',1);
+        plot(p{i},sample.input_pool(:,param.x),sample.input_pool(:,param.y),'xy','linewidth',1);
 %         plot(p{i},interpx_pool,interpy_pool,'.m');
     end
 end
@@ -155,10 +137,10 @@ l.LineWidth = 1.0; l.FontSize = 9.0; l.FontWeight='bold';
 
 % MSE in kar-cb1 space
 
-% Interpolate the mse, both pred and pool for full design space
-interpx = vertcat(pred.mapped(:,param.kar), pool.mapped(:,param.kar));
-interpy = vertcat(pred.mapped(:,param.cb1), pool.mapped(:,param.kar));
-interpz = vertcat(pred.mse, pool.mse);
+% Interpolate the mse, full design space
+interpx = pred.mapped(:,param.kar);
+interpy = pred.mapped(:,param.cb1);
+interpz = pred.mse;
 interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
 x = linspace(boundary(param.kar,1),boundary(param.kar,2),1000);
@@ -171,7 +153,7 @@ subplot(3,2,5);
 contourf(X,Y,Z,40,'LineColor','none','HandleVisibility','off')
 colorbar; hold on
 xlabel('kar'); ylabel('cb1')
-caxis([0 max(pred.mse_sortval(1),pool.mse_sortval(1))]);
+caxis([0 pred.mse_sortval(1)]);
 title('Full kar-cb1 Design Space');
 
 % plot samples and batch
@@ -183,10 +165,10 @@ plot(batch.point(:,param.kar),batch.point(:,param.cb1),'*r','linewidth',1)
 
 % MSE in sig-cw2 space
 
-% Interpolate the mse, both pred and pool for full design space
-interpx = vertcat(pred.mapped(:,param.sig), pool.mapped(:,param.sig));
-interpy = vertcat(pred.mapped(:,param.cw2), pool.mapped(:,param.cw2));
-interpz = vertcat(pred.mse, pool.mse);
+% Interpolate the mse, full design space
+interpx = pred.mapped(:,param.sig);
+interpy = pred.mapped(:,param.cw2);
+interpz = pred.mse;
 interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 
 x = linspace(boundary(param.sig,1),boundary(param.sig,2),1000);
@@ -199,7 +181,7 @@ subplot(3,2,6);
 contourf(X,Y,Z,40,'LineColor','none','HandleVisibility','off')
 colorbar; hold on
 xlabel('sig'); ylabel('cw2')
-caxis([0 max(pred.mse_sortval(1),pool.mse_sortval(1))]);
+caxis([0 pred.mse_sortval(1)]);
 title('Full sig-cw2 Design Space');
 
 % plot samples and batch
@@ -208,7 +190,6 @@ plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r','linewidth',1)
 % plot(interpx,interpy,'.m');
 
 %##########################################################################
-
 end
 
 %% Velocity Plot
@@ -253,6 +234,9 @@ axis equal; colorbar; hold on; caxis([-1 1.1]);
 colormap(p{1},'default');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
+
+% plot sample points
+plot(sample.input(:,param.x),sample.input(:,param.y),'wx','linewidth',0.8);
 
 title('GEK Prediction');
 xlabel('x/c'); ylabel('y/c')
@@ -299,20 +283,20 @@ colormap(p{3},'jet');
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 
+% plot sample points
+plot(sample.input(:,param.x),sample.input(:,param.y),'wx','linewidth',0.8);
+
 title('|RANS - GEK|');
 xlabel('x/c'); ylabel('y/c')
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
-
-% plot sample points
-plot(sample.input(:,param.x),sample.input(:,param.y),'rx','linewidth',0.5);
 
 %##########################################################################
 
 % Figure 2, plot MSE of the prediction with Nominal SA
 
 % Use previous meshgrid and interpx and interpy
-interpz = pred.mse;
+interpz = log10(pred.mse);
 interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 Z = interp(X,Y);
 
@@ -321,14 +305,16 @@ fig = figure(2);
 addToolbarExplorationButtons(fig);
 
 % plot the MSE
-contlevels = linspace(0,1,20);
-contourf(X,Y,Z,contlevels,'LineColor','none','HandleVisibility','off')
-axis equal; colorbar; hold on; %caxis([0 1.0]);
-caxis([0 pred.mse_sortval(1)]);
+contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
+axis equal; colorbar; hold on; caxis([-3 1]);
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
+
+% plot sample points
+plot(sample.input(:,param.x),sample.input(:,param.y),'wx','linewidth',0.8);
+
 xlabel('x/c'); ylabel('y/c')
-title('GEK Prediction MSE Nominal SA');
+title('GEK Prediction log MSE Nominal SA');
 p{4} = fig.CurrentAxes;
 
 %##########################################################################

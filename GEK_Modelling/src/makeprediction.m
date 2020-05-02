@@ -34,6 +34,9 @@ parfor ii = 1:pred.npoint
     
 end
 
+% MSE values smaller than eps assigned 0
+predmse(predmse<eps)=0;
+
 % put results back into main pred struct
 pred.output = predoutput;
 pred.mse = predmse;
