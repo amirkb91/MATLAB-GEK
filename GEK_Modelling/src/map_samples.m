@@ -1,4 +1,4 @@
-function [mapped_samples] = map_samples(param,raw_samples, varargin)
+function [mapped_samples] = map_samples(param,raw_samples, options)
 %MAPTOBOUNDS Function to map samples between [0,1] to boundaries of the
 %design parameters. For NASA Hump case.
 
@@ -17,13 +17,7 @@ hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;
 
 % Get the boundaries of the parameters
-boundary = get_boundary(param);
-
-% over-ride x-y boundary if input is specified (used to map the batch samples)
-if nargin == 4
-        boundary(param.x,:) = varargin{1};
-        boundary(param.y,:) = varargin{2};
-end
+boundary = get_boundary(param, options);
 
 %% Map the Samples to defined bounds
 
@@ -42,7 +36,7 @@ for j=1:npar
         x = mapped_samples(:,param.x);
         % lower bound "a" should be whichever is the highest b/w hump
         % coordinate and specified lower limit of y boundary. This is
-        % important when we have a pool window with it's bottom frame above
+        % important when we have a batch window with it's bottom frame above
         % the hump.
         a = max(hump_surface(x),boundary(param.y,1));
         b = boundary(param.y,2);

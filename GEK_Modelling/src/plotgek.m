@@ -7,7 +7,7 @@ close all;
 if strcmp(options.objective, 'batch')
     plot_mse(sample, param, pred, batch, pool, options);
 elseif strcmp(options.objective, 'verify')
-    plot_vel(sample, param, pred);
+    plot_vel(sample, param, pred, options);
 end
 end
 
@@ -18,7 +18,7 @@ function [] = plot_mse(sample, param, pred, batch, pool, options)
 % General computations before plotting
 
 % Get the boundaries of the design parameters for plotting
-boundary = get_boundary(param);
+boundary = get_boundary(param, options);
 % Get hump surface
 hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;
@@ -193,11 +193,11 @@ plot(batch.point(:,param.sig),batch.point(:,param.cw2),'*r','linewidth',1)
 end
 
 %% Velocity Plot
-function [] = plot_vel(sample, param, pred)
+function [] = plot_vel(sample, param, pred, options)
 % Plot value of prediction which is the velocity objective function
 
 % Get the boundaries of the design parameters for plotting
-boundary = get_boundary(param);
+boundary = get_boundary(param, options);
 % Get hump surface
 hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;

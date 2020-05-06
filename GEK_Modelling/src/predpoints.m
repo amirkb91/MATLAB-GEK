@@ -1,19 +1,14 @@
-function [pred] = predpoints(sample, param, objective, npred)
+function [pred] = predpoints(sample, param, options)
 % Obtain prediction points for GEK
 % input options for prediction and sample
 % output prediction struct
-
-% Check if option objective is entered correctly
-if ~strcmp(objective,'batch') && ~strcmp(objective,'verify')
-    error('Wrong objective options specified');
-end
 
 % Create prediction points
 % Need a unifrom distribution of points across the boundaries of each
 % design parameter. Done using Halton sequences.
 
 % Number of prediction points as specified by user
-pred.npoint = npred;
+pred.npoint = options.npred;
 
 % Halton sequence. Skip and Leap values defined here
 skip = floor(rand*1e7);
@@ -26,17 +21,17 @@ halton = scramble(halton,'RR2');
 pred.raw = net(halton, pred.npoint);
 
 % Map prediction points [0 1] to bounds of each parameter.
-[pred.mapped] = map_samples(param, pred.raw);
+[pred.mapped] = map_samples(param, pred.raw, options);
 
-if strcmp(objective,'batch')   
-    % for batch objective, add original sample points to the prediction points
+if strcmp(options.objective,'batch')   
+    % for batch options.objective, add original sample points to the prediction points
     % matrix. the GEK MSE at these points should be ~0    
     pred.mapped = vertcat(pred.mapped, sample.input);
     pred.npoint = pred.npoint + sample.npoint;
 
-elseif strcmp(objective,'verify')
-    % for verify objective, replace all SA values in prediction matrix with
-    % nominal SA. Verify if GEK is producing same output for velocity objective
+elseif strcmp(options.objective,'verify')
+    % for verify options.objective, replace all SA values in prediction matrix with
+    % nominal SA. Verify if GEK is producing same output for velocity options.objective
     % function than SU2 RANS at nomincal SA.
    
     % nominal SA values

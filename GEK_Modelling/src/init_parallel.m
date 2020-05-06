@@ -1,9 +1,9 @@
-function [] = init_parallel(platform)
+function [] = init_parallel(options)
 % Set number of nodes to initialise parallel run
 
-if strcmp(platform,'local')
+if strcmp(options.platform,'local')
     numcpu = 4;
-elseif strcmp(platform,'iridis')
+elseif strcmp(options.platform,'iridis')
     numcpu = 40;
 else
     error('Invalid platform name');

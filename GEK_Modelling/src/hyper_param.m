@@ -1,12 +1,12 @@
-function [theta, ln_likelihood] = hyper_param(sample, theta_file)
+function [theta, ln_likelihood] = hyper_param(sample, options)
 % Obtain Gaussian Hyperparameter theta
 % We assume Gaussian, therefore only theta is unknown and p=2.
 
 % Check option whether to load theta or Genetic Algorithm
-if ~isempty(theta_file)
+if ~isempty(options.theta)
     
-    fprintf('\nLoading theta file %s \n', theta_file);
-    theta = load(theta_file);
+    fprintf('\nLoading theta file %s \n', options.theta);
+    theta = load(options.theta);
     theta = theta.theta;
     % find ln linkelihood for this value of theta
     R = corrmat(sample, theta); % Get correlation matrix

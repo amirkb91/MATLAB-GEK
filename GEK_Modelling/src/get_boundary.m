@@ -1,6 +1,6 @@
-function [boundary] = get_boundary(par)
+function [boundary] = get_boundary(par, options)
 % define the physical boundary of the design parameters
-% input: struct par containing the parameters
+% input: struct par containing the parameters, options
 % output: boundaries for each parameter
 
 boundary = zeros(numel(fieldnames(par)),2);
@@ -11,8 +11,8 @@ boundary(par.kar,:) = [0.36 0.42];
 boundary(par.cw2,:) = [0.055 0.353];
 boundary(par.cw3,:) = [1.5 2.75];
 boundary(par.cv1,:) = [6.9 7.5];
-boundary(par.x,:)   = [-1.0 2.0];
-boundary(par.y,:)   = [0 .5];
+boundary(par.x,:)   = options.globalx;
+boundary(par.y,:)   = options.globaly;
 
 end
 

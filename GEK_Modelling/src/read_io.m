@@ -86,6 +86,27 @@ sample.outputgrad(:,param.y)   = vertcat(outputarray{:,12});
 sample.input(:,param.x) = vertcat(outputarray{:,1});
 sample.input(:,param.y) = vertcat(outputarray{:,2});
 
+%% Only retain samples inside global window
+inp_aug = [];
+out_aug = [];
+grd_aug = [];
+
+for i=1:sample.npoint
+    if sample.input(i,param.x) >= options.globalx(1) && ...
+       sample.input(i,param.x) <= options.globalx(2) && ...
+       sample.input(i,param.y) >= options.globaly(1) && ...
+       sample.input(i,param.y) <= options.globaly(2)
+        inp_aug = cat(1,inp_aug, sample.input(i,:));
+        out_aug = cat(1,out_aug, sample.output(i,:));
+        grd_aug = cat(1,grd_aug, sample.outputgrad(i,:));
+    end
+end
+
+sample.input = inp_aug;
+sample.output = out_aug;
+sample.outputgrad = grd_aug;
+sample.npoint = size(inp_aug,1);
+
 %% Augment sample output for GEK
 % GEK sample size
 sample.npoint_gek = (sample.ndim + 1)*sample.npoint;

@@ -1,4 +1,4 @@
-function [batch, pool, options] = nextbatch(sample, pred, param, options)
+function [batch, pool] = nextbatch(sample, pred, param, options)
 % Find next batch of samples in adaptive sampling and decluster in XY
 % input: sample param structs, pred points and options
 % output: next batch of samples, pool of prediction points from which
@@ -20,17 +20,6 @@ function [batch, pool, options] = nextbatch(sample, pred, param, options)
 % specified XY boundaries. Batch is then selected from those points.
 
 %% Select pool of points to extract batch from
-
-% if window boundaries haven't been specified, fall on defaults
-if isempty(options.batchxbound) || isempty(options.batchybound)
-    default_boundary = get_boundary(param);
-    if isempty(options.batchxbound)
-        options.batchxbound = default_boundary(param.x,:);
-    end
-    if isempty(options.batchybound)
-        options.batchybound = default_boundary(param.y,:);
-    end    
-end
 
 % Pool equals the pred points which fall inside the user specified boundary
 pool.mapped = [];

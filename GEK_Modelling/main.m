@@ -13,32 +13,39 @@ addpath(genpath('../'));
 
 %% Set Options for running the code
 
-% General options
+% General 
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 4; % Number of files to read from samples folder
-options.theta     = 'theta01_newsens'; % theta file. If left blank found using GA
-options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
+options.nfiles    = 6; % Number of files to read from samples folder
+options.theta     = ''; % theta file. If left blank found using GA
+options.objective = 'verify'; % New sample "batch" or "verify" existing GEK prediction
 options.npred     = 3000; % number of prediction points
 
-% Options for next sample batch
+% Global XY boundaries
+options.globalx = [0.7 1.3];
+options.globaly = [0.0 0.15];
+
+% Next sample batch
 options.nbatch      = 100; % number of next sample batch points
 options.batchmaxrad = 0.1; % maximum exclusion radius 
 options.batchtanh   = 2; % tanh factor p. larger = more space b/w samples
-options.batchxbound = [0.8 1.1]; % new xy bounds to reduce window size
-options.batchybound = [0 0.15];
+options.batchxbound = [0.75 1.1]; % xy bounds to reduce window size
+options.batchybound = [0 0.1];
 options.writebatch  = false; % Write next sample batch to file
 
 %% Run program
 
+% Check options and set defaults if unspecified by user
+options = check_options(options);
+
 % Initialise the parallel run
-init_parallel(options.platform);
+init_parallel(options);
 
 % Read SU2 input and output from samples folder
 [sample, param] = read_io(options);
 
 % Calculate the hyperparameters theta of the Gaussian Correlation Function
 tic;
-[GEK.theta, GEK.ln_likelihood] = hyper_param(sample, options.theta);
+[GEK.theta, GEK.ln_likelihood] = hyper_param(sample, options);
 time.hyper = toc/60;
 
 % Find Correlation matrix and Kriging mean using the hyperparameters
@@ -46,7 +53,7 @@ time.hyper = toc/60;
 [GEK.mu, GEK.sighat] = kriging_mean(sample, GEK.R);
 
 % Generate prediction points at which to predict GEK output
-[pred] = predpoints(sample, param, options.objective, options.npred);
+[pred] = predpoints(sample, param, options);
 
 % Make GEK predictions
 fprintf('\n----- Making Predictions -----\n');
@@ -58,7 +65,7 @@ fprintf('-Complete\n');
 % Find next batch of sample points
 if strcmp(options.objective, 'batch')
     fprintf('\n+++++ Selecting Batch +++++\n');
-    [batch, pool, options] = nextbatch(sample, pred, param, options);
+    [batch, pool] = nextbatch(sample, pred, param, options);
     fprintf('-Complete\n');
 else
     batch = []; pool = [];
