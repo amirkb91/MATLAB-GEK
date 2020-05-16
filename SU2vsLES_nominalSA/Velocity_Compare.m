@@ -54,11 +54,18 @@ les_velang  = atan2(les_vely, les_velx);
 %% Find difference
 diff_velmag = zeros(ypoint,xpoint);
 diff_velang = zeros(ypoint,xpoint);
+diff_obj    = zeros(ypoint,xpoint);
 
 for i = 1:ypoint
     for j = 1:xpoint
         diff_velmag(i,j) = abs(rans_velmag(i,j)-les_velmag(i,j));
         diff_velang(i,j) = abs(rans_velang(i,j)-les_velang(i,j));
+    end
+end
+
+for i = 1:ypoint
+    for j = 1:xpoint
+        diff_obj(i,j) = abs(rans_velmag(i,j)*rans_velang(i,j)-les_velmag(i,j)*les_velang(i,j));
     end
 end
 %% Plots of SU2 and LES.
@@ -104,6 +111,15 @@ axis equal
 title('Difference in Velocity Angle - RANS & LES')
 colorbar
 colormap('jet')
+
+fig{7} = figure;
+contourf(X,Y,diff_obj,30,'LineColor','none')
+axis equal
+title('Difference in Velocity ObjFunc - RANS & LES')
+colorbar
+colormap('jet')
+xlim([0.75 1.15])
+ylim([0 0.1])
 %% Plot hump on all figures and set axis labels
 
 xhump = linspace(0,1,1000)';

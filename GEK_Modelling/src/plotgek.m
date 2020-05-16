@@ -116,7 +116,7 @@ y = hump_surface(x);
 for i=1:length(p)
     area(p{i},x,y,0,'FaceColor','none','HandleVisibility','off')
     plot(p{i},batch.point(:,param.x),batch.point(:,param.y),'*r','linewidth',1)
-%         viscircles(p{i},batch.pointxy,batch.radius,'color','k','linewidth',1);
+%     viscircles(p{i},batch.pointxy,batch.radius,'color','k','linewidth',1);
     if i == 1
         plot(p{i},sample.input(:,param.x),sample.input(:,param.y),'xy','linewidth',1);
 %         plot(p{i},interpx_pred,interpy_pred,'.m');
@@ -296,7 +296,7 @@ ylim(boundary(param.y,:));
 % Figure 2, plot MSE of the prediction with Nominal SA
 
 % Use previous meshgrid and interpx and interpy
-interpz = log10(pred.mse);
+interpz = pred.mse;
 interp = scatteredInterpolant(interpx, interpy, interpz, 'linear', 'nearest');
 Z = interp(X,Y);
 
@@ -306,15 +306,16 @@ addToolbarExplorationButtons(fig);
 
 % plot the MSE
 contourf(X,Y,Z,30,'LineColor','none','HandleVisibility','off')
-axis equal; colorbar; hold on; caxis([-3 1]);
+axis equal; colorbar; hold on;
+caxis([0 pred.mse_sortval(1)]);
 xlim(boundary(param.x,:));
 ylim(boundary(param.y,:));
 
 % plot sample points
-plot(sample.input(:,param.x),sample.input(:,param.y),'wx','linewidth',0.8);
+plot(sample.input(:,param.x),sample.input(:,param.y),'rx','linewidth',0.8);
 
 xlabel('x/c'); ylabel('y/c')
-title('GEK Prediction log MSE Nominal SA');
+title('GEK Prediction MSE Nominal SA');
 p{4} = fig.CurrentAxes;
 
 %##########################################################################
