@@ -15,14 +15,14 @@ addpath(genpath('../'));
 
 % General 
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 10; % Number of files to read from samples folder
+options.nfiles    = 0; % Number of files to read from samples folder
 options.theta     = 'theta10'; % theta file. If left blank found using GA
 options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
 options.npred     = 1000; % number of prediction points
 
 % Global XY boundaries
-options.globalx = [0.76 1.1];
-options.globaly = [0 0.04146];
+options.globalx = [];
+options.globaly = [];
 
 % Next sample batch
 options.nbatch      = 150; % number of next sample batch points
@@ -42,6 +42,7 @@ init_parallel(options);
 
 % Read SU2 input and output from samples folder
 [sample, param] = read_io(options);
+if sample.nfiles == 0, return; end % terminate here if only generating baseline samples
 
 % Calculate the hyperparameters theta of the Gaussian Correlation Function
 tic;

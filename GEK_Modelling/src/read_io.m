@@ -13,12 +13,18 @@ warning('off', 'MATLAB:scatteredInterpolant:DupPtsAvValuesWarnId');
 param.cb1=1; param.sig=2; param.cb2=3; param.kar=4;
 param.cw2=5; param.cw3=6; param.cv1=7; param.x=8; param.y=9;
 
-%% Read Sample Space as GEK input
-% Create struct to store samples, and specify number of dimensions
+%% Create sample struct to store samples, and specify number of dimensions
 sample = struct;
 sample.ndim = 9;
 sample.nfiles = options.nfiles;
 
+%% Create baseline samples if nfiles specified as 0
+if sample.nfiles == 0
+    sample = baseline_samples(param, sample, options);
+    return
+end
+
+%% Read Sample Space as GEK input
 % Read samples from files in folder
 samfolder = 'Samples/SU2_Input';
 allfiles = dir(fullfile(samfolder,'*.dat'));
