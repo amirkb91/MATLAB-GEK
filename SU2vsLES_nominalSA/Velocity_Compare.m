@@ -5,11 +5,7 @@
 clear; close all
 warning('off','all')
 
-%% Read from results folder and do interpolation
-% header is X/Y/velx/vely. Velocities are nondimensional wrt freestream
-% rans = dlmread('/home/akb1r19/Documents/Results_CFD/NASA Hump/nominal_steady/SU2/Velocity_Field.dat','',10,0);
-% les  = dlmread('/home/akb1r19/Documents/Results_CFD/NASA Hump/nominal_steady/LES/Velocity_Field.dat','',10,0);
-
+%% Read results and do interpolation
 les = load('les.mat'); les = les.les;
 rans = load('rans.mat'); rans = rans.rans;
 
@@ -26,7 +22,7 @@ hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;
 
 % Number of points to plot contour
-xpoint = 1000;
+xpoint = 2000;
 ypoint = 1000;
 % Contour limits based on LES data (smallest mesh)
 x = linspace(-1,max(les(:,1)),xpoint)';
@@ -51,84 +47,67 @@ rans_velang = atan2(rans_vely, rans_velx);
 les_velmag  = sqrt(les_velx.^2 + les_vely.^2);
 les_velang  = atan2(les_vely, les_velx);
 
+% Find objective function value
+rans_objfunc = rans_velmag.*rans_velang;
+les_objfunc  = les_velmag.*les_velang;
+
 %% Find difference
-diff_velmag = zeros(ypoint,xpoint);
-diff_velang = zeros(ypoint,xpoint);
-diff_obj    = zeros(ypoint,xpoint);
+diff_velmag  = zeros(ypoint,xpoint);
+diff_velang  = zeros(ypoint,xpoint);
+diff_objfunc = zeros(ypoint,xpoint);
 
 for i = 1:ypoint
     for j = 1:xpoint
-        diff_velmag(i,j) = abs(rans_velmag(i,j)-les_velmag(i,j));
-        diff_velang(i,j) = abs(rans_velang(i,j)-les_velang(i,j));
+        diff_velmag(i,j)  = abs(rans_velmag(i,j)-les_velmag(i,j));
+        diff_velang(i,j)  = abs(rans_velang(i,j)-les_velang(i,j));
+        diff_objfunc(i,j) = abs(rans_objfunc(i,j)-les_objfunc(i,j));
     end
 end
 
-for i = 1:ypoint
-    for j = 1:xpoint
-        diff_obj(i,j) = abs(rans_velmag(i,j)*rans_velang(i,j)-les_velmag(i,j)*les_velang(i,j));
-    end
-end
-%% Plots of SU2 and LES.
-fig = cell(1);
+%% Extract points of max difference
 
-fig{1} = figure;
-contourf(X,Y,rans_velmag,40,'LineColor','none')
-axis equal
-title('SU2 RANS Velocity Magnitude')
-colorbar
-
-fig{2} = figure;
-contourf(X,Y,les_velmag,40,'LineColor','none')
-axis equal
-title('LES Velocity Magnitude')
-colorbar
-
-fig{3} = figure;
-contourf(X,Y,rans_velang,40,'LineColor','none')
-axis equal
-title('SU2 RANS Velocity Angle')
-colorbar
-
-fig{4} = figure;
-contourf(X,Y,les_velang,40,'LineColor','none')
-axis equal
-title('LES Velocity Angle')
-colorbar
-
-% quiver to see velocity if needed
-% quiver(X,Y,rans_velx_int,rans_vely_int)
 %% Plot of difference
-fig{5} = figure;
-contourf(X,Y,diff_velmag,linspace(0,0.2,40),'LineColor','none')
-axis equal
+fig = figure;
+
+% difference threshold
+thresh = 0.1;
+
+p{1}=subplot(3,1,1);
+levels = linspace(thresh,max(diff_velmag,[],'all'),40);
+contourf(X,Y,diff_velmag,levels,'LineColor','none')
+axis equal; hold on;
 title('Difference in Velocity Magnitude - RANS & LES')
 colorbar
 colormap('jet')
+xlim([0.7 1.5])
+ylim([0 0.1])
 
-fig{6} = figure;
-contourf(X,Y,diff_velang,linspace(0,0.2,40),'LineColor','none')
-axis equal
+p{2}=subplot(3,1,2);
+levels = linspace(thresh,max(diff_velang,[],'all'),40);
+contourf(X,Y,diff_velang,levels,'LineColor','none')
+axis equal; hold on;
 title('Difference in Velocity Angle - RANS & LES')
 colorbar
 colormap('jet')
+xlim([0.7 1.5])
+ylim([0 0.1])
 
-fig{7} = figure;
-contourf(X,Y,diff_obj,30,'LineColor','none')
-axis equal
+p{3}=subplot(3,1,3);
+levels = linspace(thresh,max(diff_objfunc,[],'all'),40);
+contourf(X,Y,diff_objfunc,levels,'LineColor','none')
+axis equal; hold on;
 title('Difference in Velocity ObjFunc - RANS & LES')
 colorbar
 colormap('jet')
-xlim([0.75 1.15])
+xlim([0.7 1.5])
 ylim([0 0.1])
 %% Plot hump on all figures and set axis labels
 
 xhump = linspace(0,1,1000)';
 yhump = hump_surface(xhump);
 
-for i=1:length(fig)
-    figure(fig{i})
-    hold on
-    area(xhump,yhump,0,'FaceColor','none')
+for i=1:length(p)
+    area(p{i},xhump,yhump,0,'FaceColor','none')
     xlabel('x/c');
     ylabel('y/c');
 end

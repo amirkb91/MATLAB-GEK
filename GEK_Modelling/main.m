@@ -15,17 +15,17 @@ addpath(genpath('../'));
 
 % General 
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 0; % Number of files to read from samples folder
-options.theta     = 'theta10'; % theta file. If left blank found using GA
+options.nfiles    = 11; % Number of files to read from samples folder
+options.theta     = 'theta11'; % theta file. If left blank found using GA
 options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
 options.npred     = 1000; % number of prediction points
 
 % Global XY boundaries
-options.globalx = [];
-options.globaly = [];
+options.globalx = [0.76 1.1];
+options.globaly = [0 0.04146];
 
 % Next sample batch
-options.nbatch      = 150; % number of next sample batch points
+options.nbatch      = 200; % number of next sample batch points
 options.batchmaxrad = 0.02; % maximum exclusion radius 
 options.batchtanh   = 3; % tanh factor p. larger = more space b/w samples
 options.batchxbound = []; % xy bounds to reduce window size
