@@ -9,7 +9,7 @@
 clear; close all; rng('shuffle');
 
 % Set path
-addpath(genpath('../'));
+addpath(genpath('./'));
 
 %% Set Options for running the code
 
@@ -25,7 +25,7 @@ options.globalx = [0.76 1.1];
 options.globaly = [0 0.04146];
 
 % Next sample batch
-options.nbatch      = 200; % number of next sample batch points
+options.nbatch      = 100; % number of next sample batch points
 options.batchmaxrad = 0.02; % maximum exclusion radius 
 options.batchtanh   = 3; % tanh factor p. larger = more space b/w samples
 options.batchxbound = []; % xy bounds to reduce window size
