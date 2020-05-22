@@ -2,7 +2,11 @@
 Create Reduced Order Models of CFD using Gradient Enhance Kriging.
 Test case is 2D NASA wall-mounted hump without a plenum: https://turbmodels.larc.nasa.gov/nasahump_val.html
 
-Main code is in GEK_Modelling. Samples are stored inside folder and read by the main.m code.
+Main code is in main.m.\
+Raw contains raw data files.\
+Samples contains SU2 input and output.\
+Optimum_Theta contains stored theta files found using GA.\
+src contains source files.
 
 -----------------------------------------------------------------------------------------------------------
 Options for running the code:
