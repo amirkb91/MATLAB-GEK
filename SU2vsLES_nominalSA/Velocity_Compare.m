@@ -21,8 +21,8 @@ hump_surface = load('hump_surface.mat');
 hump_surface = hump_surface.hump_surface;
 
 % Number of points to plot contour
-xpoint = 2000;
-ypoint = 2000;
+xpoint = 1000;
+ypoint = 1000;
 
 % Global limits
 xbound = [0.7, 1.5];
@@ -62,40 +62,6 @@ diff_velmag  = abs(rans_velmag-les_velmag);
 diff_velang  = abs(rans_velang-les_velang);
 diff_objfunc = abs(rans_objfunc-les_objfunc);
 
-%% Find locations of surrogate models
-nmod = 30; % number of models
-maxrad = 0.01; % max radius
-
-diff_objfunc_col = reshape(diff_objfunc,[xpoint*ypoint,1]);
-xmeshgrid_col = reshape(X,[xpoint*ypoint,1]);
-ymeshgrid_col = reshape(Y,[xpoint*ypoint,1]);
-
-[diff_objvalsort, diff_objindsort] = sort(diff_objfunc_col,'descend');
-
-model_coor = [xmeshgrid_col(diff_objindsort(1)), ymeshgrid_col(diff_objindsort(1))];
-
-ii = 2;
-
-while size(model_coor,1) < nmod && ii <= xpoint*ypoint
-    candidate = [xmeshgrid_col(diff_objindsort(ii)), ymeshgrid_col(diff_objindsort(ii))];
-    qualified = true;
-    
-    for j=1:size(model_coor,1)
-       dist =  norm(candidate - model_coor(j,:));
-       
-       if dist <= maxrad
-           qualified = false;
-           break;
-       end
-    end
-    
-    if qualified
-        model_coor = cat(1,model_coor,candidate);
-    end
-    
-    ii = ii+1;    
-end
-
 %% Plot of difference
 fig = figure;
 
@@ -126,14 +92,13 @@ title('Difference in Velocity ObjFunc - RANS & LES')
 colorbar
 colormap('jet')
 
-%% Plot hump and surrogate locations on all figures and set axis labels
+%% Plot hump on all figures and set axis labels
 
 xhump = linspace(xbound(1),xbound(2),1000)';
 yhump = hump_surface(xhump);
 
 for i=1:length(p)
     area(p{i},xhump,yhump,0,'FaceColor','none')
-    plot(p{i},model_coor(:,1),model_coor(:,2),'rx','linewidth',3);
     xlabel('x/c');
     ylabel('y/c');
 end
