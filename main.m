@@ -15,7 +15,7 @@ addpath(genpath('./'));
 
 % General 
 options.platform  = 'local'; % platform to run on (iridis/local)
-options.nfiles    = 11; % Number of files to read from samples folder
+options.nfiles    = 5; % Number of files to read from samples folder
 options.theta     = 'theta11'; % theta file. If left blank found using GA
 options.objective = 'batch'; % New sample "batch" or "verify" existing GEK prediction
 options.npred     = 1000; % number of prediction points
@@ -79,7 +79,7 @@ end
 
 % Save the workspace variables if on Iridis
 if strcmp(options.platform, 'iridis')
-    save(sprintf('../iridisout/allvars_%s',options.objective));
+    save(sprintf('Iridisout/allvars_%s',options.objective));
 end
 
 % Confirm success
